@@ -1,0 +1,1080 @@
+#: import NoTransition kivy.uix.screenmanager.NoTransition
+
+ScreenManagement:
+	transition: NoTransition()
+	HomeScreen:
+	ChooseProgScreen:
+    SwitchScreen:
+    NewProgScreen0:
+	NewProgScreen1:
+
+
+<HomeScreen>:
+	name: "home"
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'background.png'
+	FloatLayout:
+
+		Button:
+			text: "Select Program"
+			on_press: root.setFunc(0)
+			on_release: app.root.current = "chooseprog"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.5,0.2
+            pos_hint: {"center_x":.5, "center_y":.82}
+
+        Button:
+			text: "Add New Program"
+			on_release: app.root.current = "newprog0"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.5,0.2
+            pos_hint: {"center_x":.5, "center_y":.61}
+
+		Button:
+			text: "Edit Existing Program"
+			on_press: root.setFunc(1)
+			on_release: app.root.current = "chooseprog"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.5,0.2
+            pos_hint: {"center_x":.5, "center_y":.4}
+		Button:
+			text: "Delete Existing Program"
+			on_press: root.setFunc(2)
+			on_release: app.root.current = "chooseprog"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.5,0.2
+            pos_hint: {"center_x":.5, "center_y":.19}
+
+		Button:
+			text: "Exit"
+			on_press: app.stop()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.1,0.1
+            pos_hint: {"center_x":.1, "center_y":.9}
+
+<ChooseProgScreen>:
+	popup: popup.__self__
+	name: "chooseprog"
+	on_pre_enter: root.updateButtons()
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'background.png'
+	FloatLayout:
+		id: bl
+        Popup:
+            id: popup
+			size_hint: .5,.3
+            title: "Are you sure you want to delete?"
+            on_parent:
+                if self.parent == bl: self.parent.remove_widget(self)
+			FloatLayout:
+	            Button:
+	                text: 'Ok'
+					pos_hint: {"center_x":.25,"center_y":.5}
+					size_hint: .4,.6
+	                on_release:
+						root.setFunc()
+						root.updateButtons()
+						popup.dismiss()
+				Button:
+	                text: 'Cancel'
+					pos_hint: {"center_x":.75,"center_y":.5}
+					size_hint: .4,.6
+	                on_release:
+						popup.dismiss()
+
+
+		Label:
+			id: lblTitle
+			text: root.getLblTxt()
+			pos_hint: {"center_x":.5, "center_y":.1}
+			font_size: 25
+		Button:
+			text: "Back"
+			on_release: app.root.current = "home"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":.1, "center_y":.1}
+
+
+		Button:
+			id:btn1
+			text: root.getBtnTxt(1)
+			on_press: root.popOpen(1)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(1)
+			background_color: 1,1,1,root.getClr(1)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*0)+.0833, "center_y":(.1666*5)+.0833}
+		Button:
+			id: btn2
+			text: root.getBtnTxt(2)
+			on_press: root.popOpen(2)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(2)
+			background_color: 1,1,1,root.getClr(2)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*1)+.0833, "center_y":(.1666*5)+.0833}
+		Button:
+			id: btn3
+			text: root.getBtnTxt(3)
+			on_press: root.popOpen(3)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(3)
+			background_color: 1,1,1,root.getClr(3)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*2)+.0833, "center_y":(.1666*5)+.0833}
+		Button:
+			id: btn4
+			text: root.getBtnTxt(4)
+			on_press: root.popOpen(4)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(4)
+			background_color: 1,1,1,root.getClr(4)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*3)+.0833, "center_y":(.1666*5)+.0833}
+		Button:
+			id: btn5
+			text: root.getBtnTxt(5)
+			on_press: root.popOpen(5)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(5)
+			background_color: 1,1,1,root.getClr(5)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*4)+.0833, "center_y":(.1666*5)+.0833}
+		Button:
+			id: btn6
+			text: root.getBtnTxt(6)
+			on_press: root.popOpen(6)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(6)
+			background_color: 1,1,1,root.getClr(6)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*5)+.0833, "center_y":(.1666*5)+.0833}
+		Button:
+			id:btn7
+			text: root.getBtnTxt(7)
+			on_press: root.popOpen(7)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(7)
+			background_color: 1,1,1,root.getClr(7)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*0)+.0833, "center_y":(.1666*4)+.0833}
+		Button:
+			id: btn8
+			text: root.getBtnTxt(8)
+			on_press: root.popOpen(8)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(8)
+			background_color: 1,1,1,root.getClr(8)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*1)+.0833, "center_y":(.1666*4)+.0833}
+		Button:
+			id: btn9
+			text: root.getBtnTxt(9)
+			on_press: root.popOpen(9)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(9)
+			background_color: 1,1,1,root.getClr(9)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*2)+.0833, "center_y":(.1666*4)+.0833}
+		Button:
+			id: btn10
+			text: root.getBtnTxt(10)
+			on_press: root.popOpen(10)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(10)
+			background_color: 1,1,1,root.getClr(10)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*3)+.0833, "center_y":(.1666*4)+.0833}
+		Button:
+			id: btn11
+			text: root.getBtnTxt(11)
+			on_press: root.popOpen(11)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(11)
+			background_color: 1,1,1,root.getClr(11)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*4)+.0833, "center_y":(.1666*4)+.0833}
+		Button:
+			id: btn12
+			text: root.getBtnTxt(12)
+			on_press: root.popOpen(12)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(12)
+			background_color: 1,1,1,root.getClr(12)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*5)+.0833, "center_y":(.1666*4)+.0833}
+		Button:
+			id:btn13
+			text: root.getBtnTxt(13)
+			on_press: root.popOpen(13)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(13)
+			background_color: 1,1,1,root.getClr(13)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*0)+.0833, "center_y":(.1666*3)+.0833}
+		Button:
+			id: btn14
+			text: root.getBtnTxt(14)
+			on_press: root.popOpen(14)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(14)
+			background_color: 1,1,1,root.getClr(14)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*1)+.0833, "center_y":(.1666*3)+.0833}
+		Button:
+			id: btn15
+			text: root.getBtnTxt(15)
+			on_press: root.popOpen(15)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(15)
+			background_color: 1,1,1,root.getClr(15)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*2)+.0833, "center_y":(.1666*3)+.0833}
+		Button:
+			id: btn16
+			text: root.getBtnTxt(16)
+			on_press: root.popOpen(16)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(16)
+			background_color: 1,1,1,root.getClr(16)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*3)+.0833, "center_y":(.1666*3)+.0833}
+		Button:
+			id: btn17
+			text: root.getBtnTxt(17)
+			on_press: root.popOpen(17)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(17)
+			background_color: 1,1,1,root.getClr(17)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*4)+.0833, "center_y":(.1666*3)+.0833}
+		Button:
+			id: btn18
+			text: root.getBtnTxt(18)
+			on_press: root.popOpen(18)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(18)
+			background_color: 1,1,1,root.getClr(18)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*5)+.0833, "center_y":(.1666*3)+.0833}
+		Button:
+			id:btn19
+			text: root.getBtnTxt(19)
+			on_press: root.popOpen(19)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(19)
+			background_color: 1,1,1,root.getClr(19)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*0)+.0833, "center_y":(.1666*2)+.0833}
+		Button:
+			id: btn20
+			text: root.getBtnTxt(20)
+			on_press: root.popOpen(20)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(20)
+			background_color: 1,1,1,root.getClr(20)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*1)+.0833, "center_y":(.1666*2)+.0833}
+		Button:
+			id: btn21
+			text: root.getBtnTxt(21)
+			on_press: root.popOpen(21)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(21)
+			background_color: 1,1,1,root.getClr(21)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*2)+.0833, "center_y":(.1666*2)+.0833}
+		Button:
+			id: btn22
+			text: root.getBtnTxt(22)
+			on_press: root.popOpen(22)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(22)
+			background_color: 1,1,1,root.getClr(22)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*3)+.0833, "center_y":(.1666*2)+.0833}
+		Button:
+			id: btn23
+			text: root.getBtnTxt(23)
+			on_press: root.popOpen(23)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(23)
+			background_color: 1,1,1,root.getClr(23)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*4)+.0833, "center_y":(.1666*2)+.0833}
+		Button:
+			id: btn24
+			text: root.getBtnTxt(23)
+			on_press: root.popOpen(24)
+			on_release: app.root.current = root.getScrn()
+            color: 1,1,1,root.getClr(24)
+			background_color: 1,1,1,root.getClr(24)
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":(.1666*5)+.0833, "center_y":(.1666*2)+.0833}
+
+<SwitchScreen>:
+	popup0: popup0.__self__
+	name: "switch"
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'background.png'
+	on_pre_enter: root.updateScreen()
+	FloatLayout:
+		id: bl
+        Popup:
+            id: popup0
+			size_hint: 1,1
+            title: "Select Channel to Test/Adjust"
+            on_parent:
+                if self.parent == bl: self.parent.remove_widget(self)
+			FloatLayout:
+	            ToggleButton:
+					id: togbtn0
+	                text: root.ids.btn0.text
+					pos_hint: root.ids.btn0.pos_hint
+					size_hint: root.ids.btn0.size_hint
+					group : 'g0'
+				ToggleButton:
+					id: togbtn1
+	                text: root.ids.btn1.text
+					pos_hint: root.ids.btn1.pos_hint
+					size_hint: root.ids.btn1.size_hint
+					group : 'g0'
+				ToggleButton:
+					id: togbtn2
+	                text: root.ids.btn2.text
+					pos_hint: root.ids.btn2.pos_hint
+					size_hint: root.ids.btn2.size_hint
+					group : 'g0'
+				ToggleButton:
+					id: togbtn3
+	                text: root.ids.btn3.text
+					pos_hint: root.ids.btn3.pos_hint
+					size_hint: root.ids.btn3.size_hint
+					group : 'g0'
+				ToggleButton:
+					id: togbtn4
+	                text: root.ids.btn4.text
+					pos_hint: root.ids.btn4.pos_hint
+					size_hint: root.ids.btn4.size_hint
+					group : 'g0'
+				ToggleButton:
+					id: togbtn5
+	                text: root.ids.btn5.text
+					pos_hint: root.ids.btn5.pos_hint
+					size_hint: root.ids.btn5.size_hint
+					group : 'g0'
+				ToggleButton:
+					id: togbtn6
+	                text: root.ids.btn6.text
+					pos_hint: root.ids.btn6.pos_hint
+					size_hint: root.ids.btn6.size_hint
+					group : 'g0'
+				Slider:
+					id: slide
+					pos_hint: {"center_x":.66,"center_y":.5}
+					size_hint: .5,.1
+					step: 1
+					max: 127
+				Label:
+					pos_hint: {"center_x":.91,"center_y":.5}
+					text: '{}'.format(slide.value)
+				Button:
+	                text: 'Apply\nSlew Rate'
+					pos_hint: {"center_x":.66,"center_y":.35}
+					size_hint: .13,.13
+					on_press: root.updatePot()
+				Button:
+	                text: 'Test\nSlew Rate'
+					pos_hint: {"center_x":.2,"center_y":.35}
+					size_hint: .13,.13
+					on_press: root.testSlewRate()
+				Label:
+					id: popslewdisplay
+					pos_hint: {"center_x":.2,"center_y":.5}
+					text: "Slew Rate: .7 V/us"
+				Button:
+	                text: 'Exit'
+					pos_hint: {"center_x":.1,"center_y":.1}
+					size_hint: .15,.15
+	                on_release:
+						root.updateScreen()
+						root.stopPWM()
+						popup0.dismiss()
+
+		Button:
+			id: slewtime
+			pos_hint: {"center_x":.12, "center_y":.3}
+			on_press:
+				popup0.open()
+				root.stopPWM()
+			size_hint: 0.18,0.12
+			text: "Display/Adjust\nSlew Rate:"
+		Label:
+			id: slewdisplay
+			pos_hint: {"center_x":.65, "center_y":.3}
+
+		Label:
+			id: btn0func
+			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.55}
+		Label:
+			id: btn0frq
+			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.5}
+		Label:
+			id: btn0dc
+			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.45}
+		Label:
+			id: btn1func
+			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.55}
+		Label:
+			id: btn1frq
+			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.5}
+		Label:
+			id: btn1dc
+			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.45}
+		Label:
+			id: btn2func
+			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.55}
+		Label:
+			id: btn2frq
+			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.5}
+		Label:
+			id: btn2dc
+			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.45}
+		Label:
+			id: btn3func
+			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.55}
+		Label:
+			id: btn3frq
+			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.5}
+		Label:
+			id: btn3dc
+			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.45}
+		Label:
+			id: btn4func
+			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.55}
+		Label:
+			id: btn4frq
+			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.5}
+		Label:
+			id: btn4dc
+			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.45}
+		Label:
+			id: btn5func
+			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.55}
+		Label:
+			id: btn5frq
+			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.5}
+		Label:
+			id: btn5dc
+			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.45}
+		Label:
+			id: btn6func
+			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.55}
+		Label:
+			id: btn6frq
+			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.5}
+		Label:
+			id: btn6dc
+			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.45}
+
+
+		Button:
+			text: "Back"
+			on_press: root.stopPWM()
+			on_release: app.root.current = "chooseprog"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":.1, "center_y":.1}
+        ToggleButton:
+			id: btn0
+			on_press: root.btn0Out()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.13,0.4
+            pos_hint: {"center_x":(0.3/8)+.05, "center_y":.78}
+        ToggleButton:
+			id: btn1
+			on_press: root.btn1Out()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.13,0.4
+            pos_hint: {"center_x":(0.3/4)+.15, "center_y":.78}
+        ToggleButton:
+			id: btn2
+			on_press: root.btn2Out()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.13,0.4
+            pos_hint: {"center_x":(3*(0.3/8))+.25, "center_y":.78}
+        ToggleButton:
+			id: btn3
+			on_press: root.btn3Out()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.13,0.4
+            pos_hint: {"center_x":(4*(0.3/8))+.35, "center_y":.78}
+        ToggleButton:
+			id: btn4
+			on_press: root.btn4Out()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.13,0.4
+            pos_hint: {"center_x":(5*(0.3/8))+.45, "center_y":.78}
+        ToggleButton:
+			id: btn5
+			on_press: root.btn5Out()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.13,0.4
+            pos_hint: {"center_x":(6*(0.3/8))+.55, "center_y":.78}
+        ToggleButton:
+			id: btn6
+			on_press: root.btn6Out()
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.13,0.4
+            pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.78}
+
+		Label:
+			id: switchtitle
+			pos_hint: {"center_x":.5, "center_y":.1}
+			font_size: 25
+
+<NewProgScreen0>:
+	name: "newprog0"
+	on_pre_enter: root.updateText()
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'background.png'
+	FloatLayout:
+		TextInput:
+			id: entry
+			text: root.updateText()
+			font_size: 16
+			multiline: False
+			size_hint: .2, .07
+			pos_hint: {"center_x":.55, "center_y":.5}
+		Label:
+            text: "Enter Program Title:"
+			pos_hint: {"center_x":.25, "center_y":.5}
+			font_size: 25
+		Button:
+			text: "Cancel"
+			on_release: app.root.current = "home"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":.1, "center_y":.1}
+		Button:
+			text: "Next"
+			on_press: root.commitNewProgTitle()
+			on_release: app.root.current = "newprog1"
+            color: 1,1,1,1
+            font_size: 25
+            size_hint: 0.15,0.15
+            pos_hint: {"center_x":.9, "center_y":.1}
+
+<NewProgScreen1>:
+    fullscreen: True
+	on_pre_enter: root.updateWidgets()
+    name: 'newprog1'
+	canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'background.png'
+	popup: popup.__self__
+	FloatLayout:
+		id: bl
+        Popup:
+            id: popup
+			size_hint: .5,.3
+            title: "Please enter valid information in highlighted fields"
+            on_parent:
+                if self.parent == bl: self.parent.remove_widget(self)
+			FloatLayout:
+	            Button:
+	                text: 'Ok'
+					pos_hint: {"center_x":.5,"center_y":.5}
+					size_hint: .4,.5
+	                on_release:popup.dismiss()
+
+
+	Button:
+		text: "Apply"
+		on_press: root.commitButtonInfo()
+		on_release: app.root.current = root.checkValidInfo()
+		color: 1,1,1,1
+		font_size: 25
+		size_hint: 0.15,0.15
+		pos_hint: {"center_x":.9, "center_y":.1}
+
+
+	Label:
+		text: "Configure Buttons"
+		pos_hint: {"center_x":.5, "center_y":.95}
+		font_size: 30
+	Label:
+		text: "Channel"
+		pos_hint: {"center_x":.05, "center_y":.88}
+		font_size: 14
+	Label:
+		text: "Title"
+		pos_hint: {"center_x":.03, "center_y":.8}
+		font_size: 14
+	Label:
+		text: "DC"
+		pos_hint: {"center_x":.027, "center_y":.7}
+		font_size: 14
+	Label:
+		text: "PWM"
+		pos_hint: {"center_x":.035, "center_y":.61}
+		font_size: 14
+	Label:
+		text: "Freq."
+		pos_hint: {"center_x":.035, "center_y":.5}
+		font_size: 14
+	Label:
+		text: "Duty Cycle"
+		pos_hint: {"center_x":.057, "center_y":.4}
+		font_size: 14
+
+	Label:
+		text: "1"
+		pos_hint: {"center_x":.05+.1227, "center_y":.88}
+		font_size: 14
+	Label:
+		text: "2"
+		pos_hint: {"center_x":.05+0.2454, "center_y":.88}
+		font_size: 14
+	Label:
+		text: "3"
+		pos_hint: {"center_x":.05+0.36814, "center_y":.88}
+		font_size: 14
+	Label:
+		text: "4"
+		pos_hint: {"center_x":.05+0.490857, "center_y":.88}
+		font_size: 14
+	Label:
+		text: "5"
+		pos_hint: {"center_x":.05+0.61357, "center_y":.88}
+		font_size: 14
+	Label:
+		text: "6"
+		pos_hint: {"center_x":.05+0.73628, "center_y":.88}
+		font_size: 14
+	Label:
+		text: "7"
+		pos_hint: {"center_x":.05+0.859, "center_y":.88}
+		font_size: 14
+
+
+
+	Label:
+		text: "PWM channel"
+		pos_hint: {"center_x":.15, "center_y":.25}
+		font_size: 14
+	Label:
+		text: "Frq Accuracy"
+		pos_hint: {"center_x":.3, "center_y":.25}
+		font_size: 14
+	Label:
+		text: "Frq Input"
+		pos_hint: {"center_x":.48, "center_y":.25}
+		font_size: 14
+	Label:
+		text: "Duty Cycle Input"
+		pos_hint: {"center_x":.66, "center_y":.25}
+		font_size: 14
+	Label:
+		text: "1-5"
+		pos_hint: {"center_x":.15, "center_y":.2}
+		font_size: 14
+	Label:
+		text: "up to 500 Hz"
+		pos_hint: {"center_x":.3, "center_y":.2}
+		font_size: 14
+	Label:
+		text: "Whole/dec. point #"
+		pos_hint: {"center_x":.48, "center_y":.2}
+		font_size: 14
+	Label:
+		text: "Whole # 0-100"
+		pos_hint: {"center_x":.66, "center_y":.2}
+		font_size: 14
+	Label:
+		text: "6-7"
+		pos_hint: {"center_x":.15, "center_y":.15}
+		font_size: 14
+	Label:
+		text: "up to 100 KHz"
+		pos_hint: {"center_x":.3, "center_y":.15}
+		font_size: 14
+	Label:
+		text: "Whole #"
+		pos_hint: {"center_x":.48, "center_y":.15}
+		font_size: 14
+	Label:
+		text: "Whole # 0-100"
+		pos_hint: {"center_x":.66, "center_y":.15}
+		font_size: 14
+
+
+	TextInput: #button title text inputs
+		id: btntxt0
+		text: ""
+		font_size: 12
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+.1227, "center_y":.8}
+	TextInput:
+		id: btntxt1
+		text: ""
+		font_size: 12
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.2454, "center_y":.8}
+	TextInput:
+		id: btntxt2
+		text: ""
+		font_size: 12
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.36814, "center_y":.8}
+	TextInput:
+		id: btntxt3
+		text: ""
+		font_size: 12
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.490857, "center_y":.8}
+	TextInput:
+		id: btntxt4
+		text: ""
+		font_size: 12
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.61357, "center_y":.8}
+	TextInput:
+		id: btntxt5
+		text: ""
+		font_size: 12
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.73628, "center_y":.8}
+	TextInput:
+		id: btntxt6
+		text: ""
+		font_size: 12
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.859, "center_y":.8}
+
+
+	TextInput: #frequency text inputs
+		id: frqtxt0
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn0State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+.1227, "center_y":.5}
+	TextInput:
+		id: frqtxt1
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn1State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.2454, "center_y":.5}
+	TextInput:
+		id: frqtxt2
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn2State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.36814, "center_y":.5}
+	TextInput:
+		id: frqtxt3
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn3State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.490857, "center_y":.5}
+	TextInput:
+		id: frqtxt4
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn4State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.61357, "center_y":.5}
+	TextInput:
+		id: frqtxt5
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn5State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.73628, "center_y":.5}
+	TextInput:
+		id: frqtxt6
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn6State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.859, "center_y":.5}
+
+
+	TextInput: #Duty Cycle text inputs
+		id: dctxt0
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn0State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+.1227, "center_y":.4}
+	TextInput:
+		id: dctxt1
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn1State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.2454, "center_y":.4}
+	TextInput:
+		id: dctxt2
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn2State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.36814, "center_y":.4}
+	TextInput:
+		id: dctxt3
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn3State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.490857, "center_y":.4}
+	TextInput:
+		id: dctxt4
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn4State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.61357, "center_y":.4}
+	TextInput:
+		id: dctxt5
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn5State()
+		multiline: False
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.73628, "center_y":.4}
+	TextInput:
+		id: dctxt6
+		text: ""
+		font_size: 12
+		#disabled: root.getbtn6State()
+		multiline: False
+		disabled: True
+		size_hint: .1, .07
+		pos_hint: {"center_x":.05+0.859, "center_y":.4}
+
+	GridLayout:
+		cols:7
+		rows:2
+		spacing: '7dp'
+		size_hint: 1, None
+		height: 360
+		spacing: 0,0
+		padding: 75,0,20,0
+
+	    CheckBox:
+			id: check0
+			on_press:
+				root.updatefrqtxt0State()
+				root.updatedctxt0State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+.1227, "center_y":.75}
+	        height: '48dp'
+	        group: 'g0'
+
+		CheckBox:
+			id: check1
+			on_press:
+				root.updatefrqtxt1State()
+				root.updatedctxt1State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.2454, "center_y":.75}
+	        height: '48dp'
+	        group: 'g1'
+
+		CheckBox:
+			id: check2
+			on_press:
+				root.updatefrqtxt2State()
+				root.updatedctxt2State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.36814, "center_y":.75}
+	        height: '48dp'
+	        group: 'g2'
+
+		CheckBox:
+			id: check3
+			on_press:
+				root.updatefrqtxt3State()
+				root.updatedctxt3State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.490857, "center_y":.75}
+	        height: '48dp'
+	        group: 'g3'
+
+		CheckBox:
+			id: check4
+			on_press:
+				root.updatefrqtxt4State()
+				root.updatedctxt4State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.61357, "center_y":.75}
+	        height: '48dp'
+	        group: 'g4'
+
+		CheckBox:
+			id: check5
+			on_press:
+				root.updatefrqtxt5State()
+				root.updatedctxt5State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.73628, "center_y":.75}
+	        height: '48dp'
+	        group: 'g5'
+
+		CheckBox:
+			id: check6
+			on_press:
+				root.updatefrqtxt6State()
+				root.updatedctxt6State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.859, "center_y":.75}
+	        height: '48dp'
+	        group: 'g6'
+
+		CheckBox:
+			id: check00
+			on_press:
+				root.updatefrqtxt0State()
+				root.updatedctxt0State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+.1227, "center_y":.68}
+	        height: '48dp'
+	        group: 'g0'
+
+		CheckBox:
+			id: check11
+			on_press:
+				root.updatefrqtxt1State()
+				root.updatedctxt1State()
+			size_hint_y: None
+			#pos_hint:{"center_x":.05+0.2454, "center_y":.68}
+			height: '48dp'
+			group: 'g1'
+
+		CheckBox:
+			id: check22
+			on_press:
+				root.updatefrqtxt2State()
+				root.updatedctxt2State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.36814, "center_y":.68}
+	        height: '48dp'
+	        group: 'g2'
+
+		CheckBox:
+			id: check33
+			on_press:
+				root.updatefrqtxt3State()
+				root.updatedctxt3State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.490857, "center_y":.68}
+	        height: '48dp'
+	        group: 'g3'
+
+		CheckBox:
+			id: check44
+			on_press:
+				root.updatefrqtxt4State()
+				root.updatedctxt4State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.61357, "center_y":.68}
+	        height: '48dp'
+	        group: 'g4'
+
+		CheckBox:
+			id: check55
+			on_press:
+				root.updatefrqtxt5State()
+				root.updatedctxt5State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.73628, "center_y":.68}
+	        height: '48dp'
+	        group: 'g5'
+
+	    CheckBox:
+			id: check66
+			on_press:
+				root.updatefrqtxt6State()
+				root.updatedctxt6State()
+	        size_hint_y: None
+			#pos_hint:{"center_x":.05+0.859, "center_y":.68}
+	        height: '48dp'
+	        group: 'g6'
