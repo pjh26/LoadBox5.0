@@ -1,6 +1,14 @@
 import RPi.GPIO as GPIO
 import threading
+import pigpio
+import smbus2
 
+#set GPIO to BCM numbering scheme. Pin numbering can be found at pinout.xyz
+GPIO.setmode(GPIO.BCM)
+
+GPIO.setup(26, GPIO.OUT)	# IS_0
+GPIO.setup(19, GPIO.OUT)	# IS_1
+GPIO.setup(13, GPIO.OUT)	# IS_2
 
 '''
 
@@ -14,7 +22,7 @@ import threading
 
 '''
 class CurrentSensor:
-	def __init__(self, Buttons):
+	def __init__(self, Buttons, dataLock, I2CLock, GPIOObjects, bus):
 		
 		# Program is a dictionary of info, this will be passed into this variable.
 		# It will hold the info for all 7 buttons which will include current limit data
@@ -22,14 +30,19 @@ class CurrentSensor:
 
 		self.currentData = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0}
 		self.threadData = {}
-		self.threadLock = threading.Lock()
+		self.threadLock = dataLock
+		self.I2CLock = I2CLock
+		self.GPIOList = []
+		self.GPIOList.extend(GPIOObjects)
+		self.bus = bus
 
 	# This is the function that is called in the main program when a button is pressed. It 
 	# creates a new thread for an internal function so that every button can run on a 
 	# seperate thread. 
 	def startRead(self, Button):
 		try:
-			newThread = threading.Thread( target = read, args = (Button, self.threadLock,) )
+			newThread = threading.Thread( target = read, args = (Button, self.threadLock, self.I2CLock, self.bus
+				) )
 			self.threadData[Button] = newThread
 			self.threadData[Button].start()
 		except Exception as e:
@@ -43,24 +56,34 @@ class CurrentSensor:
 
 	# This function begins the loop that reads the adc data and determines if the current is 
 	# going over the set limit. If it is then 
-	def read(self, Button, lock):
+	def read(self, Button, threadLock, I2CLock, bus):
 		while (True):
 			
-			lock.acquire()
+			I2CLock.acquire()
+			I2CSelect(Button + 1)
+			# Read data from the adc
+			adcReading = bus.read_i2c_block_data(0x54, 0, 2)
+			I2CLock.release()
 
-			#TODO: Read data from the adc
+			# Convert adcReading into integer value
+			readingValue = adcReading[0]
+			readingValue += adcReading[1] << 2
 
-			# We store the data so that the GUI can display the data
-			self.currentData[num] = adcReading
-
-			lock.release()
+			# We store the data so that the GUI can display the 
+			dataLock.acquire()
+			self.currentData[num] = readingValue
+			dataLock.release()
 
 			if (adcReading > self.prog[num]['MaxCurrent']):
-				#TODO: throw exception back to the main
-				# This should immediately interrupt any tasks at main and shut down 
-				# the respective output. It should show a popup with the error.
+				killChannel(Button)
 				break
 
+	def killChannel(self, Button):
+		if Button < 3:
+			self.GPIOList[Button].ChangeDutyCycle(0)
+		else:
+			tempDict = {3:18, 4:12, 5:19, 6:13}
+			self.GPIOList[3].hardware_PWM(tempDict[Button], 0, 0)
 
 	# Getter method for the current data
 	def getCurrent(self, Button):
@@ -68,3 +91,37 @@ class CurrentSensor:
 			return self.currentData[Button]
 		except Exception as e:
 			return -1
+
+	def I2CSelect(self, num):
+		if (num == 0):
+			GPIO.output(26, 0)
+			GPIO.output(19, 0)
+			GPIO.output(13, 0)
+		elif (num == 1):
+			GPIO.output(26, 1)
+			GPIO.output(19, 0)
+			GPIO.output(13, 0)
+		elif (num == 2):
+			GPIO.output(26, 0)
+			GPIO.output(19, 1)
+			GPIO.output(13, 0)
+		elif (num == 3):
+			GPIO.output(26, 1)
+			GPIO.output(19, 1)
+			GPIO.output(13, 0)
+		elif (num == 4):
+			GPIO.output(26, 0)
+			GPIO.output(19, 0)
+			GPIO.output(13, 1)
+		elif (num == 5):
+			GPIO.output(26, 1)
+			GPIO.output(19, 0)
+			GPIO.output(13, 1)
+		elif (num == 6):
+			GPIO.output(26, 0)
+			GPIO.output(19, 1)
+			GPIO.output(13, 1)
+		elif (num == 7):
+			GPIO.output(26, 1)
+			GPIO.output(19, 1)
+			GPIO.output(13, 1)

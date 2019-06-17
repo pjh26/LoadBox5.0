@@ -194,7 +194,7 @@ ScreenManagement:
 					max: 127
 				Label:
 					pos_hint: {"center_x":.91,"center_y":.5}
-					text: '{}'.format(slide.value)
+					text: '{}'.format(root.getSlideValue(slide.value))
 				Button:
 					text: 'Apply\nSlew Rate'
 					pos_hint: {"center_x":.66,"center_y":.35}
@@ -294,7 +294,6 @@ ScreenManagement:
 			id: btn6dc
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.45}
 
-
 		Button:
 			text: "Back"
 			on_press: root.stopPWM()
@@ -305,49 +304,49 @@ ScreenManagement:
 			pos_hint: {"center_x":.1, "center_y":.1}
 		ToggleButton:
 			id: btn0
-			on_press: root.btn0Out()
+			on_press: root.btnOut(0)
 			color: 1,1,1,1
 			font_size: 25
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.78}
 		ToggleButton:
 			id: btn1
-			on_press: root.btn1Out()
+			on_press: root.btnOut(1)
 			color: 1,1,1,1
 			font_size: 25
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(0.3/4)+.15, "center_y":.78}
 		ToggleButton:
 			id: btn2
-			on_press: root.btn2Out()
+			on_press: root.btnOut(2)
 			color: 1,1,1,1
 			font_size: 25
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(3*(0.3/8))+.25, "center_y":.78}
 		ToggleButton:
 			id: btn3
-			on_press: root.btn3Out()
+			on_press: root.btnOut(3)
 			color: 1,1,1,1
 			font_size: 25
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(4*(0.3/8))+.35, "center_y":.78}
 		ToggleButton:
 			id: btn4
-			on_press: root.btn4Out()
+			on_press: root.btnOut(4)
 			color: 1,1,1,1
 			font_size: 25
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(5*(0.3/8))+.45, "center_y":.78}
 		ToggleButton:
 			id: btn5
-			on_press: root.btn5Out()
+			on_press: root.btnOut(5)
 			color: 1,1,1,1
 			font_size: 25
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(6*(0.3/8))+.55, "center_y":.78}
 		ToggleButton:
 			id: btn6
-			on_press: root.btn6Out()
+			on_press: root.btnOut(6)
 			color: 1,1,1,1
 			font_size: 25
 			size_hint: 0.13,0.4

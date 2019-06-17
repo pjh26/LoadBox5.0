@@ -11,18 +11,21 @@ from kivy.uix.button import Button
 from kivy.properties import StringProperty
 from kivy.uix.togglebutton import ToggleButton
 from GPIO_Timer import GPIO_Timer
+import smbus2
 import shelve
 import pigpio
 import atexit
 import RPi.GPIO as GPIO
 import spidev
 import CurrentSensor
+import threading
 
-#------------------------------------------------------------------------------#
-#                                                                              #
-#     Code structure is documented in OneNote under User Interface Design      #
-#                                                                              #
-#------------------------------------------------------------------------------#
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+#     Code structure is documented in OneNote under User Interface Design       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
 
 #reset GPIO pin functions at exit of program
 atexit.register(GPIO.cleanup)
@@ -30,33 +33,41 @@ atexit.register(GPIO.cleanup)
 #set GPIO to BCM numbering scheme. Pin numbering can be found at pinout.xyz
 GPIO.setmode(GPIO.BCM)
 
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+#    Outputs are as follows          SPI Select            Slew Rate FB         #
+#                                       CS0 - GPIO22          SR1 - GPIO05      #
+#       Signal 1 - GPIO20               CS1 - GPIO27          SR2 - GPIO06      #
+#       Signal 2 - GPIO23               CS2 - GPIO17                            #
+#       Signal 3 - GPIO24                                                       #
+#       Signal 4 - GPIO18            I2C Select                                 #
+#       Signal 5 - GPIO12               IS0 - GPIO21                            #
+#       Signal 6 - GPIO19               IS1 - GPIO26                            #
+#       Signal 7 - GPIO13               IS2 - GPIO04                            #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+
+
+
 #initialize software pwm
 #btn0
-GPIO.setup(17, GPIO.OUT)
-p0 = GPIO.PWM(17, 1)
+GPIO.setup(20, GPIO.OUT)
+p0 = GPIO.PWM(20, 1)
 p0.start(0)
 
 #btn1
-GPIO.setup(27, GPIO.OUT)
-p1 = GPIO.PWM(27, 1)
+GPIO.setup(23, GPIO.OUT)
+p1 = GPIO.PWM(23, 1)
 p1.start(0)
 
 #btn2
-GPIO.setup(22, GPIO.OUT)
-p2 = GPIO.PWM(22, 1)
+GPIO.setup(24, GPIO.OUT)
+p2 = GPIO.PWM(24, 1)
 p2.start(0)
 
-#btn3
-GPIO.setup(23, GPIO.OUT)
-p3 = GPIO.PWM(23, 1)
-p3.start(0)
 
-#btn4
-GPIO.setup(24, GPIO.OUT)
-p4 = GPIO.PWM(24, 1)
-p4.start(0)
-
-#initialize hardware PWM
+#initialize hardware PWM for channels 3, 4, 5, and 6
 hardPWM = pigpio.pi()
 
 #initialize GPIO callack timer to test timing of voltage events on pins
@@ -77,6 +88,44 @@ GPIO.output(27, 0)
 
 GPIO.setup(22, GPIO.OUT)	# CS0
 GPIO.output(22, 0)
+
+def SPISelect(num)
+	if (num == 0):
+		GPIO.output(22, 0)
+		GPIO.output(27, 0)
+		GPIO.output(17, 0)
+	elif (num == 1):
+		GPIO.output(22, 1)
+		GPIO.output(27, 0)
+		GPIO.output(17, 0)
+	elif (num == 2):
+		GPIO.output(22, 0)
+		GPIO.output(27, 1)
+		GPIO.output(17, 0)
+	elif (num == 3):
+		GPIO.output(22, 1)
+		GPIO.output(27, 1)
+		GPIO.output(17, 0)
+	elif (num == 4):
+		GPIO.output(22, 0)
+		GPIO.output(27, 0)
+		GPIO.output(17, 1)
+	elif (num == 5):
+		GPIO.output(22, 1)
+		GPIO.output(27, 0)
+		GPIO.output(17, 1)
+	elif (num == 6):
+		GPIO.output(22, 0)
+		GPIO.output(27, 1)
+		GPIO.output(17, 1)
+	elif (num == 7):
+		GPIO.output(22, 1)
+		GPIO.output(27, 1)
+		GPIO.output(17, 1)
+	else:
+		GPIO.output(22, 0)
+		GPIO.output(27, 0)
+		GPIO.output(17, 0)
 
 
 class HomeScreen(Screen):
@@ -239,8 +288,31 @@ class SwitchScreen(Screen):
 		progData = s['data']
 		s.close()
 
+		self.slewRateList = []
+
+		self.btnList = []
+		self.btnList.append(self.ids.btn0)
+		self.btnList.append(self.ids.btn1)
+		self.btnList.append(self.ids.btn2)
+		self.btnList.append(self.ids.btn3)
+		self.btnList.append(self.ids.btn4)
+		self.btnList.append(self.ids.btn5)
+		self.btnList.append(self.ids.btn6)
+
+		self.GPIOList = []
+		self.GPIOList.append(p0)
+		self.GPIOList.append(p1)
+		self.GPIOList.append(p2)
+		self.GPIOList.append(hardPWM)
+
 		buttonData = progData[globalData['pos']]['buttons']
-		self.currentSensor = CurrentSensor(buttonData)
+		self.dataLock = threading.Lock()
+		self.I2CLock = threading.Lock()
+		self.bus = SMBus(1)
+		self.currentSensor = CurrentSensor(buttonData, self.lock, self.I2CLock, self.GPIOList, self.bus)
+
+	def getSlideValue(self, slideVal):
+		return str(self.slewRateList[int(slideVal)])
 
 	#this updates the buttons upon entering the screen to reflect their current state
 	def updateScreen(self):
@@ -348,10 +420,10 @@ class SwitchScreen(Screen):
 		p0.ChangeDutyCycle(0)
 		p1.ChangeDutyCycle(0)
 		p2.ChangeDutyCycle(0)
-		p3.ChangeDutyCycle(0)
-		p4.ChangeDutyCycle(0)
-		hardPWM.hardware_PWM(18,1,0)
-		hardPWM.hardware_PWM(19,1,0)
+		hardPWM.hardware_PWM(18,0,0)
+		hardPWM.hardware_PWM(12,0,0)
+		hardPWM.hardware_PWM(19,0,0)
+		hardPWM.hardware_PWM(13,0,0)
 		if self.ids.btn0.state == "down":
 			try:
 				self.currentSensor.stopRead(0)
@@ -428,305 +500,119 @@ class SwitchScreen(Screen):
 		SPISelect(0)
 
 	#determine and display slew rate on selected channel
-	def testSlewRate(self):
+	def testSlewRate(self, num):
 		if self.ids.togbtn0.state == "down":
-			p0.ChangeDutyCycle(100)
-			while True:
-				if GPIO.input(17) == 1:
-					p0.ChangeDutyCycle(0)
-					break
+			SRList = getSlewRateSpectrum(1)
 		elif self.ids.togbtn1.state == "down":
-			p1.ChangeDutyCycle(100)
-			while True:
-				if GPIO.input(27) == 1:
-					p1.ChangeDutyCycle(0)
-					break
+			SRList = getSlewRateSpectrum(2)
 		elif self.ids.togbtn2.state == "down":
-			p2.ChangeDutyCycle(100)
-			while True:
-				if GPIO.input(22) == 1:
-					p2.ChangeDutyCycle(0)
-					break
+			SRList = getSlewRateSpectrum(3)
 		elif self.ids.togbtn3.state == "down":
-			p3.ChangeDutyCycle(100)
-			while True:
-				if GPIO.input(23) == 1:
-					p3.ChangeDutyCycle(0)
-					break
+			SRList = getSlewRateSpectrum(4)
 		elif self.ids.togbtn4.state == "down":
-			p4.ChangeDutyCycle(100)
-			while True:
-				if GPIO.input(24) == 1:
-					p4.ChangeDutyCycle(0)
-					break
+			SRList = getSlewRateSpectrum(5)
 		elif self.ids.togbtn5.state == "down":
-			hardPWM.hardware_PWM(18,1,1000000)
-			while True:
-				if hardPWM.read(18) == 1:
-					hardPWM.hardware_PWM(18,1,0)
-					break
+			SRList = getSlewRateSpectrum(6)
 		elif self.ids.togbtn6.state == "down":
-			hardPWM.hardware_PWM(19,1,1000000)
-			while True:
-				if hardPWM.read(19) == 1:
-					hardPWM.hardware_PWM(19,1,0)
-					break
-		myTime = myTimer.getElapsedTime()
-		if myTime > 0:
-			mySlewRate = "{0:.2f}".format((10.5-2.5)/myTime)
-		else:
-			mySlewRate = "Error"
-		self.ids.popslewdisplay.text = "Slew Rate: {}, V/us ".format(mySlewRate)
+			SRList = getSlewRateSpectrum(7)
+		self.slewRateList = SRList
+		stopPWM()
+
+	# This function tests every single potentiometer possibility to give the tester an idea of
+	# what slew rates they will be able to use
+	def getSlewRateSpectrum(self, num):
+		SPISelect(num)
+		SRData[]
+		AVGData = 0
+		tempDict = {3:18, 4:12, 5:19, 6:13}
+
+		for i in range(127):
+			spi.writebytes(i)
+			AVGData = 0
+			for j in range(20):
+				# Turn on the output
+				if num < 3:
+					self.GPIOList[Button].ChangeDutyCycle(100)
+					# Micro chip automatically measures the data
+					time.sleep(.0005)
+					adcReading = bus.read_i2c_block_data(0x0F, 0, 2)
+					self.GPIOList[Button].ChangeDutyCycle(0)
+				else:
+					hardPWM.hardware_PWM(tempDict[num],1, 1000000)
+					# Micro chip automatically measures the data
+					time.sleep(.0005)
+					adcReading = bus.read_i2c_block_data(0x0F, 0, 2)
+					hardPWM.hardware_PWM(tempDict[num],0, 0)
+
+				readingValue = adcReading[0]
+				readingValue += adcReading[1] << 2
+				AVGData += readingValue/20
+			
+			SRData.append(AVGData*0.00305)
+
+		return SRData
 
 	#outputs software pwm signals on raspberry pi when the button is pressed
-	def btn0Out(self):
+	def btnOut(self, num):
 		#open database and save copy to temporary dictionary
 		s = shelve.open('TestBoxData.db')
 		globalData = s['global']
 		progData = s['data']
 		pos = globalData['pos']
-
-		#get frequency and duty cycle values
-		try:
-			dc = float(progData[pos]['buttons'][0]['dc'])
-			frq = float(progData[pos]['buttons'][0]['frq'])
-		except:
-			dc = frq = ""
-
-		# Here we start the current listener
-
-		if progData[pos]['buttons'][0]['func'] == 'DC':
-			if self.ids.btn0.state == "down":
-					self.currentSensor.startRead(0)
-					p0.ChangeDutyCycle(100)
-			elif self.ids.btn0.state == "normal":
-					p0.ChangeDutyCycle(0)
-					self.currentSensor.stopRead(0)
-		if progData[pos]['buttons'][0]['func'] == 'PWM':
-			try:
-				p0.ChangeFrequency(frq)
-				if self.ids.btn0.state == "down":
-						self.currentSensor.startRead(0)
-						p0.ChangeDutyCycle(dc)
-				elif self.ids.btn0.state == "normal":
-						p0.ChangeDutyCycle(0)
-						self.currentSensor.stopRead(0)
-			except:
-				pass
+		buttons = progData[pos]['buttons']
 		s.close()
 
-	#outputs software pwm signals on raspberry pi when the button is pressed
-	def btn1Out(self):
-
-		#open database and save copy to temporary dictionary
-		s = shelve.open('TestBoxData.db')
-		globalData = s['global']
-		progData = s['data']
-		pos = globalData['pos']
-
 		#get frequency and duty cycle values
 		try:
-			dc = float(progData[pos]['buttons'][1]['dc'])
-			frq = float(progData[pos]['buttons'][1]['frq'])
+			dc = float(buttons[num]['dc'])
+			frq = float(buttons[num]['frq'])
 		except:
 			dc = frq = ""
 
-		if progData[pos]['buttons'][1]['func'] == 'DC':
-			if self.ids.btn1.state == "down":
-				self.currentSensor.startRead(1)
+		if self.btnList[num].state == "down":
+			self.currentSensor.startRead(num)
+			startFunction(num, buttons[num])
+		elif self.btnList[num].state == "normal":
+			stopFunction(num)
+			self.currentSensor.stopRead(num)
+
+	# Given the button object and the button number this starts a signal on the proper GPIO
+	# pin with the correct duty cycle and frequency
+	def startFunction(self, BtnNum, Button):
+		tempDict = {3:18, 4:12, 5:19, 6:13}
+		if Button['func'] == 'DC':
+			if (BtnNum == 0):
+				p0.ChangeDutyCycle(100)
+			elif (BtnNum == 1):
 				p1.ChangeDutyCycle(100)
-			elif self.ids.btn1.state == "normal":
-				p1.ChangeDutyCycle(0)
-				self.currentSensor.stopRead(1)
-		if progData[pos]['buttons'][1]['func'] == 'PWM':
-			try:
-				p1.ChangeFrequency(frq)
-				if self.ids.btn1.state == "down":
-					self.currentSensor.startRead(1)
-					p1.ChangeDutyCycle(dc)
-				elif self.ids.btn1.state == "normal":
-					p1.ChangeDutyCycle(0)
-					self.currentSensor.stopRead(1)
-			except:
-				pass
-		s.close()
-
-	#outputssoftware  pwm signals on raspberry pi when the button is pressed
-	def btn2Out(self):
-
-		#open database and save copy to temporary dictionary
-		s = shelve.open('TestBoxData.db')
-		globalData = s['global']
-		progData = s['data']
-		pos = globalData['pos']
-
-		#get frequency and duty cycle values
-		try:
-			dc = float(progData[pos]['buttons'][2]['dc'])
-			frq = float(progData[pos]['buttons'][2]['frq'])
-		except:
-			dc = frq = ""
-
-		if progData[pos]['buttons'][2]['func'] == 'DC':
-			if self.ids.btn2.state == "down":
-				self.currentSensor.startRead(2)
+			elif (BtnNum == 2):
 				p2.ChangeDutyCycle(100)
-			elif self.ids.btn2.state == "normal":
-				p2.ChangeDutyCycle(0)
-				self.currentSensor.stopRead(2)
-		if progData[pos]['buttons'][2]['func'] == 'PWM':
-			try:
-				p2.ChangeFrequency(frq)
-				if self.ids.btn2.state == "down":
-					self.currentSensor.startRead(2)
-					p2.ChangeDutyCycle(dc)
-				elif self.ids.btn2.state == "normal":
-					p2.ChangeDutyCycle(0)
-					self.currentSensor.stopRead(2)
-			except:
-				pass
-		s.close()
+			else:
+				hardPWM.hardware_PWM(tempDict[BtnNum], 1, 1000000)
+		else:
+			if (BtnNum == 0):
+				p0.ChangeFrequency(float(Button['freq']))
+				p0.ChangeFrequency(float(Button['dc']))
+			elif (BtnNum == 1):
+				p1.ChangeFrequency(float(Button['freq)']))
+				p1.ChangeFrequency(float(Button['dc']))
+			elif (BtnNum == 2):
+				p2.ChangeFrequency(float(Button['freq)']))
+				p2.ChangeFrequency(float(Button['dc']))
+			else:
+				hardPWM.hardware_PWM(tempDict[BtnNum], int(Button['freq']), 10000 * int(Button['dc']))
 
-	#outputs software pwm signals on raspberry pi when the button is pressed
-	def btn3Out(self):
-
-		#open database and save copy to temporary dictionary
-		s = shelve.open('TestBoxData.db')
-		globalData = s['global']
-		progData = s['data']
-		pos = globalData['pos']
-
-		#get frequency and duty cycle values
-		try:
-			dc = float(progData[pos]['buttons'][3]['dc'])
-			frq = float(progData[pos]['buttons'][3]['frq'])
-		except:
-			dc = frq = ""
-
-		if progData[pos]['buttons'][3]['func'] == 'DC':
-			if self.ids.btn3.state == "down":
-				self.currentSensor.startRead(3)
-				p3.ChangeDutyCycle(100)
-			elif self.ids.btn3.state == "normal":
-				p3.ChangeDutyCycle(0)
-				self.currentSensor.stopRead(3)
-		if temp[pos]['buttons'][3]['func'] == 'PWM':
-			try:
-				p3.ChangeFrequency(frq)
-				if self.ids.btn3.state == "down":
-					self.currentSensor.startRead(3)
-					p3.ChangeDutyCycle(dc)
-				elif self.ids.btn3.state == "normal":
-					p3.ChangeDutyCycle(0)
-					self.currentSensor.stopRead(3)
-			except:
-				pass
-		s.close()
-
-	#outputs software pwm signals on raspberry pi when the button is pressed
-	def btn4Out(self):
-
-		#open database and save copy to temporary dictionary
-		s = shelve.open('TestBoxData.db')
-		globalData = s['global']
-		progData = s['data']
-		pos = globalData['pos']
-
-		#get frequency and duty cycle values
-		try:
-			dc = float(progData[pos]['buttons'][4]['dc'])
-			frq = float(progData[pos]['buttons'][4]['frq'])
-		except:
-			dc = frq = ""
-
-		if progData[pos]['buttons'][4]['func'] == 'DC':
-			if self.ids.btn4.state == "down":
-				self.currentSensor.startRead(4)
-				p4.ChangeDutyCycle(100)
-			elif self.ids.btn4.state == "normal":
-				p4.ChangeDutyCycle(0)
-				self.currentSensor.startRead(4)
-		if progData[pos]['buttons'][4]['func'] == 'PWM':
-			try:
-				p4.ChangeFrequency(frq)
-				if self.ids.btn4.state == "down":
-					self.currentSensor.startRead(4)
-					p4.ChangeDutyCycle(dc)
-				elif self.ids.btn4.state == "normal":
-					p4.ChangeDutyCycle(0)
-					self.currentSensor.startRead(4)
-			except:
-				pass
-
-		s.close()
-
-	#outputs hardware pwm signals on raspberry pi when the button is pressed
-	def btn5Out(self):
-		#open database and save copy to temporary dictionary
-		s = shelve.open('TestBoxData.db')
-		globalData = s['global']
-		progData = s['data']
-		pos = globalData['pos']
-
-		#get frequency and duty cycle values
-		try:
-			dc = 10000 * int(progData[pos]['buttons'][5]['dc'])
-			frq = int(progData[pos]['buttons'][5]['frq'])
-		except:
-			dc = frq = ""
-
-		if progData[pos]['buttons'][5]['func'] == 'DC':
-			if self.ids.btn5.state == "down":
-				self.currentSensor.startRead(5)
-				hardPWM.hardware_PWM(18,1,1000000)
-			elif self.ids.btn5.state == "normal":
-				hardPWM.hardware_PWM(18,1,0)
-				self.currentSensor.startRead(5)
-		if progData[pos]['buttons'][5]['func'] == 'PWM':
-			try:
-				if self.ids.btn5.state == "down":
-					self.currentSensor.startRead(5)
-					hardPWM.hardware_PWM(18,frq,dc)
-				elif self.ids.btn5.state == "normal":
-					hardPWM.hardware_PWM(18,1,0)
-					self.currentSensor.startRead(5)
-			except Exception as e:
-				raise e
-		s.close()
-
-	#outputs hardware signals on raspberry pi when the button is pressed
-	def btn6Out(self):
-		#open database and save copy to temporary dictionary
-		s = shelve.open('TestBoxData.db')
-		globalData = s['global']
-		progData = s['data']
-		pos = globalData['pos']
-
-		#get frequency and duty cycle values
-		try:
-			dc = 10000 * int(progData[pos]['buttons'][6]['dc'])
-			frq = int(progData[pos]['buttons'][6]['frq'])
-		except:
-			dc = frq = ""
-
-		if progData[pos]['buttons'][6]['func'] == 'DC':
-			if self.ids.btn6.state == "down":
-				self.currentSensor.startRead(6)
-				hardPWM.hardware_PWM(19,1,1000000)
-			elif self.ids.btn6.state == "normal":
-				hardPWM.hardware_PWM(19,1,0)
-				self.currentSensor.startRead(6)
-		if progData[pos]['buttons'][6]['func'] == 'PWM':
-			try:
-				if self.ids.btn6.state == "down":
-					self.currentSensor.startRead(6)
-					hardPWM.hardware_PWM(19,frq,dc)
-				elif self.ids.btn6.state == "normal":
-					hardPWM.hardware_PWM(19,1,0)
-					self.currentSensor.startRead(6)
-			except Exception as e:
-				raise e	
-		s.close()
+	# Given the button number this function turns off the signal on the corresponding GPIO pin
+	def stopFunction(self, BtnNum):
+		tempDict = {3:18, 4:12, 5:19, 6:13}
+		if (BtnNum == 0):
+			p0.ChangeDutyCycle(100)
+		elif (BtnNum == 1):
+			p1.ChangeDutyCycle(100)
+		elif (BtnNum == 2):
+			p2.ChangeDutyCycle(100)
+		else:
+			hardPWM.hardware_PWM(tempDict[BtnNum], 0, 0)
 
 class NewProgScreen(Screen):
 	#Upon pressing Next, commits the new program title at a new key in the dict
@@ -741,7 +627,7 @@ class NewProgScreen(Screen):
 		pos = globalData['maxpos']
 		pos += 1
 		
-		progData[pos] = {'title':self.ids.entry.text, 'buttons':{0:{'title':'0','func':'DC','frq':100,'dc':101},1:{'title':'0','func':'DC','frq':100,'dc':101},2:{'title':'0','func':'DC','frq':100,'dc':101},3:{'title':'0','func':'DC','frq':100,'dc':101},4:{'title':'0','func':'DC','frq':100,'dc':101},5:{'title':'0','func':'DC','frq':100,'dc':101},6:{'title':'0','func':'DC','frq':100,'dc':101}}}
+		progData[pos] = {'title':self.ids.entry.text, 'buttons':{0:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},1:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},2:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},3:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},4:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},5:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},6:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5}}}
 		globalData['pos'] = pos
 		globalData['maxpos'] = pos
 		s['global'] = globalData
