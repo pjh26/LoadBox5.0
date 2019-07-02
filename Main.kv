@@ -1,4 +1,5 @@
 #: import NoTransition kivy.uix.screenmanager.NoTransition
+#: import Factory kivy.factory.Factory
 ScreenManagement:
 	transition: NoTransition()
 	HomeScreen
@@ -118,13 +119,24 @@ ScreenManagement:
 					on_release:
 						popup.dismiss()
 
-<ProgButton@Button>
+<ProgButton>:
 	on_release: app.root.current = root.getScrn()
 	height: 80
 	color: 1,1,1,1
 	background_color: 1,1,1,1
 	font_size: 25
 	size_hint_y: None
+
+<LoadingPopup@Popup>:
+	title: ""
+	id: loadingPopup
+	size_hint: 0.6, 0.1
+	auto_dismiss: False
+	pos_hint: {"center_x":.5, "center_y":.5}
+	ProgressBar:
+		id: progBar
+		size_hint: None, None
+		max: 100
 
 <SwitchScreen>:
 	popup0: popup0.__self__
@@ -135,6 +147,7 @@ ScreenManagement:
 			size: self.size
 			source: 'background.png'
 	on_pre_enter: root.updateScreen()
+	on_pre_leave: root.cleanUP()
 	FloatLayout:
 		id: bl
 		Popup:
@@ -143,48 +156,64 @@ ScreenManagement:
 			title: "Select Channel to Test/Adjust"
 			on_parent:
 				if self.parent == bl: self.parent.remove_widget(self)
+
+
 			FloatLayout:
 				ToggleButton:
 					id: togbtn0
 					text: root.ids.btn0.text
 					pos_hint: root.ids.btn0.pos_hint
 					size_hint: root.ids.btn0.size_hint
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn1
 					text: root.ids.btn1.text
 					pos_hint: root.ids.btn1.pos_hint
 					size_hint: root.ids.btn1.size_hint
+					on_press: root.loadingPopup(True)
+					on_release:  root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn2
 					text: root.ids.btn2.text
 					pos_hint: root.ids.btn2.pos_hint
 					size_hint: root.ids.btn2.size_hint
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn3
 					text: root.ids.btn3.text
 					pos_hint: root.ids.btn3.pos_hint
 					size_hint: root.ids.btn3.size_hint
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn4
 					text: root.ids.btn4.text
 					pos_hint: root.ids.btn4.pos_hint
 					size_hint: root.ids.btn4.size_hint
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn5
 					text: root.ids.btn5.text
 					pos_hint: root.ids.btn5.pos_hint
 					size_hint: root.ids.btn5.size_hint
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn6
 					text: root.ids.btn6.text
 					pos_hint: root.ids.btn6.pos_hint
 					size_hint: root.ids.btn6.size_hint
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				Slider:
 					id: slide
@@ -193,7 +222,7 @@ ScreenManagement:
 					step: 1
 					max: 127
 				Label:
-					pos_hint: {"center_x":.91,"center_y":.5}
+					pos_hint: {"center_x":.95,"center_y":.5}
 					text: '{}'.format(root.getSlideValue(slide.value))
 				Button:
 					text: 'Apply\nSlew Rate'
@@ -204,7 +233,8 @@ ScreenManagement:
 					text: 'Test\nSlew Rate'
 					pos_hint: {"center_x":.2,"center_y":.35}
 					size_hint: .13,.13
-					on_press: root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 				Label:
 					id: popslewdisplay
 					pos_hint: {"center_x":.2,"center_y":.5}
@@ -228,8 +258,12 @@ ScreenManagement:
 			text: "Display/Adjust\nSlew Rate:"
 		Label:
 			id: slewdisplay
-			pos_hint: {"center_x":.65, "center_y":.3}
+			pos_hint: {"center_x":.65, "center_y":.25}
 
+		Label:
+			id: btn0cur
+			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.4}
+			halign: 'right'
 		Label:
 			id: btn0func
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.55}
@@ -240,6 +274,9 @@ ScreenManagement:
 			id: btn0dc
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.45}
 		Label:
+			id: btn1cur
+			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.4}
+		Label:
 			id: btn1func
 			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.55}
 		Label:
@@ -248,6 +285,9 @@ ScreenManagement:
 		Label:
 			id: btn1dc
 			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.45}
+		Label:
+			id: btn2cur
+			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.4}
 		Label:
 			id: btn2func
 			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.55}
@@ -258,6 +298,9 @@ ScreenManagement:
 			id: btn2dc
 			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.45}
 		Label:
+			id: btn3cur
+			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.4}
+		Label:
 			id: btn3func
 			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.55}
 		Label:
@@ -266,6 +309,9 @@ ScreenManagement:
 		Label:
 			id: btn3dc
 			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.45}
+		Label:
+			id: btn4cur
+			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.4}
 		Label:
 			id: btn4func
 			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.55}
@@ -276,6 +322,9 @@ ScreenManagement:
 			id: btn4dc
 			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.45}
 		Label:
+			id: btn5cur
+			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.4}
+		Label:
 			id: btn5func
 			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.55}
 		Label:
@@ -285,6 +334,9 @@ ScreenManagement:
 			id: btn5dc
 			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.45}
 		Label:
+			id: btn6cur
+			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.4}
+		Label:
 			id: btn6func
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.55}
 		Label:
@@ -293,7 +345,6 @@ ScreenManagement:
 		Label:
 			id: btn6dc
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.45}
-
 		Button:
 			text: "Back"
 			on_press: root.stopPWM()

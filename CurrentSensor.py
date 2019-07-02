@@ -1,7 +1,8 @@
 import RPi.GPIO as GPIO
 import threading
 import pigpio
-import smbus2
+import smbus
+import Queue
 
 #set GPIO to BCM numbering scheme. Pin numbering can be found at pinout.xyz
 GPIO.setmode(GPIO.BCM)
@@ -13,7 +14,7 @@ GPIO.setup(13, GPIO.OUT)	# IS_2
 '''
 
 * This class will monitor current data given by an ADC on the switch box 4.0 board
-* if it reads above a certain point then it will immediately shut off that gpio and 
+* if it reads above a certain point then it will immediately shut off that gpio and
 * send an alert to main
 *
 * The goal is for this to run on a seperate thread any time that the switch page opens.
@@ -22,73 +23,74 @@ GPIO.setup(13, GPIO.OUT)	# IS_2
 
 '''
 class CurrentSensor:
-	def __init__(self, Buttons, dataLock, I2CLock, GPIOObjects, bus):
-		
+	def __init__(self, Buttons, I2CLock, bus, CurrentQueueList):
+
 		# Program is a dictionary of info, this will be passed into this variable.
 		# It will hold the info for all 7 buttons which will include current limit data
 		self.prog = Buttons
 
 		self.currentData = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0}
-		self.threadData = {}
-		self.threadLock = dataLock
 		self.I2CLock = I2CLock
-		self.GPIOList = []
-		self.GPIOList.extend(GPIOObjects)
 		self.bus = bus
+		self.QueueList = []
+		self.QueueList.extend(CurrentQueueList)
+		self.threadData = []
+		self.stopQueueList = []
+		self.tempDict = {0:20, 1:23, 2:24, 3:18, 4:12, 5:19, 6:13}
 
-	# This is the function that is called in the main program when a button is pressed. It 
-	# creates a new thread for an internal function so that every button can run on a 
-	# seperate thread. 
-	def startRead(self, Button):
+		for i in range(7):
+			self.stopQueueList.append(Queue.Queue(1))
+			self.threadData.append(threading.Thread( target = self.read, args = (i, self.I2CLock, self.bus, self.QueueList[i], self.stopQueueList[i])))
+
+
+	# This is the function that is called in the main program when a button is pressed. It
+	# creates a new thread for an internal function so that every button can run on a
+	# seperate thread.
+	def startRead(self):
 		try:
-			newThread = threading.Thread( target = read, args = (Button, self.threadLock, self.I2CLock, self.bus
-				) )
-			self.threadData[Button] = newThread
-			self.threadData[Button].start()
+			for i in range(7):
+				self.stopQueueList[i].get(False)
+				self.threadData[i].start()
 		except Exception as e:
-			raise e
+			pass
 
-	def stopRead(self, Button):
+	def stopRead(self):
 		try:
-			self.threadData[Button].join()
+			for i in range(7):
+				self.stopQueueList[i].put(False)
+				self.threadData[i].join()
 		except Exception as e:
-			raise e
+			pass
 
-	# This function begins the loop that reads the adc data and determines if the current is 
-	# going over the set limit. If it is then 
-	def read(self, Button, threadLock, I2CLock, bus):
+	# This function begins the loop that reads the adc data and determines if the current is
+	# going over the set limit. If it is then
+	def read(self, ButtonNum, I2CLock, bus, Queue, stopQueue):
 		while (True):
-			
 			I2CLock.acquire()
-			I2CSelect(Button + 1)
+			I2CSelect(ButtonNum + 1)
 			# Read data from the adc
 			adcReading = bus.read_i2c_block_data(0x54, 0, 2)
 			I2CLock.release()
 
 			# Convert adcReading into integer value
-			readingValue = adcReading[0]
-			readingValue += adcReading[1] << 2
-
-			# We store the data so that the GUI can display the 
-			dataLock.acquire()
-			self.currentData[num] = readingValue
-			dataLock.release()
-
+			readingValue = adcReading[0] + (adcReading[1] << 2)
 			if (adcReading > self.prog[num]['MaxCurrent']):
-				killChannel(Button)
+				GPIO.output(tempDict[num], 0)
+
+			if Queue.empty():
+				try:
+					Queue.put(readingValue, False)
+				except Exception as e:
+					raise e
+
+			if stopQueue.full():
 				break
 
-	def killChannel(self, Button):
-		if Button < 3:
-			self.GPIOList[Button].ChangeDutyCycle(0)
-		else:
-			tempDict = {3:18, 4:12, 5:19, 6:13}
-			self.GPIOList[3].hardware_PWM(tempDict[Button], 0, 0)
 
 	# Getter method for the current data
-	def getCurrent(self, Button):
+	def getCurrent(self, ButtonNum):
 		try:
-			return self.currentData[Button]
+			return self.currentData[ButtonNum]
 		except Exception as e:
 			return -1
 

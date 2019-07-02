@@ -2,6 +2,7 @@ from kivy.app import App
 #kivy.require("1.8.0")
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
+from kivy.config import Config
 from kivy.uix.widget import Widget
 from kivy.graphics import Line
 from kivy.core.window import Window
@@ -10,15 +11,21 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.properties import StringProperty
 from kivy.uix.togglebutton import ToggleButton
-from GPIO_Timer import GPIO_Timer
-import smbus2
+from kivy.uix.progressbar import ProgressBar
+from kivy.uix.popup import Popup
+from kivy.clock import mainthread
+from smbus2 import SMBus
 import shelve
 import pigpio
 import atexit
 import RPi.GPIO as GPIO
 import spidev
 import CurrentSensor
+import math
 import threading
+import random
+import time
+import Queue
 
 
 #-------------------------------------------------------------------------------#
@@ -32,6 +39,11 @@ atexit.register(GPIO.cleanup)
 
 #set GPIO to BCM numbering scheme. Pin numbering can be found at pinout.xyz
 GPIO.setmode(GPIO.BCM)
+
+#Configure kivy
+Config.set('modules','cursor','1')
+
+Config.write()
 
 
 #-------------------------------------------------------------------------------#
@@ -68,11 +80,11 @@ p2.start(0)
 
 
 #initialize hardware PWM for channels 3, 4, 5, and 6
+GPIO.setup(18, GPIO.OUT)
+GPIO.setup(12, GPIO.OUT)
+GPIO.setup(19, GPIO.OUT)
+GPIO.setup(13, GPIO.OUT)
 hardPWM = pigpio.pi()
-
-#initialize GPIO callack timer to test timing of voltage events on pins
-myTimer = GPIO_Timer(5,6)
-myTimer.startCallBack()
 
 #initialize SPI bus
 spi = spidev.SpiDev()
@@ -81,7 +93,7 @@ spi.max_speed_hz = 5000000
 
 # Initialize select outputs
 GPIO.setup(17, GPIO.OUT)	# CS2
-GPIO.output(17, 0)	
+GPIO.output(17, 0)
 
 GPIO.setup(27, GPIO.OUT)	# CS1
 GPIO.output(27, 0)
@@ -89,7 +101,9 @@ GPIO.output(27, 0)
 GPIO.setup(22, GPIO.OUT)	# CS0
 GPIO.output(22, 0)
 
-def SPISelect(num)
+bus = SMBus(1)
+
+def SPISelect(num):
 	if (num == 0):
 		GPIO.output(22, 0)
 		GPIO.output(27, 0)
@@ -126,7 +140,6 @@ def SPISelect(num)
 		GPIO.output(22, 0)
 		GPIO.output(27, 0)
 		GPIO.output(17, 0)
-
 
 class HomeScreen(Screen):
 	# Sets the value at the 'del' position in the dict to a value that represents 
@@ -282,40 +295,62 @@ class SwitchScreen(Screen):
 
 	def __init__(self, **kwargs):
 		Screen.__init__(self, **kwargs)
-		
-		s = shelf.open('TestBoxData.db')
-		globalData = s['global']
-		progData = s['data']
-		s.close()
-
 		self.slewRateList = []
-
-		self.btnList = []
-		self.btnList.append(self.ids.btn0)
-		self.btnList.append(self.ids.btn1)
-		self.btnList.append(self.ids.btn2)
-		self.btnList.append(self.ids.btn3)
-		self.btnList.append(self.ids.btn4)
-		self.btnList.append(self.ids.btn5)
-		self.btnList.append(self.ids.btn6)
-
+		for i in range(128):
+			self.slewRateList.append(0)
 		self.GPIOList = []
 		self.GPIOList.append(p0)
 		self.GPIOList.append(p1)
 		self.GPIOList.append(p2)
 		self.GPIOList.append(hardPWM)
 
-		buttonData = progData[globalData['pos']]['buttons']
-		self.dataLock = threading.Lock()
-		self.I2CLock = threading.Lock()
-		self.bus = SMBus(1)
-		self.currentSensor = CurrentSensor(buttonData, self.lock, self.I2CLock, self.GPIOList, self.bus)
-
 	def getSlideValue(self, slideVal):
-		return str(self.slewRateList[int(slideVal)])
+		return str(self.slewRateList[int(slideVal)]) + " V/us"
 
 	#this updates the buttons upon entering the screen to reflect their current state
 	def updateScreen(self):
+
+                self.btnList = []
+                self.btnList.append(self.ids.btn0)
+                self.btnList.append(self.ids.btn1)
+                self.btnList.append(self.ids.btn2)
+                self.btnList.append(self.ids.btn3)
+                self.btnList.append(self.ids.btn4)
+                self.btnList.append(self.ids.btn5)
+                self.btnList.append(self.ids.btn6)
+
+                self.btnFuncList = []
+                self.btnFuncList.append(self.ids.btn0func)
+                self.btnFuncList.append(self.ids.btn1func)
+                self.btnFuncList.append(self.ids.btn2func)
+                self.btnFuncList.append(self.ids.btn3func)
+                self.btnFuncList.append(self.ids.btn4func)
+                self.btnFuncList.append(self.ids.btn5func)
+                self.btnFuncList.append(self.ids.btn6func)
+
+                self.btnFrqList = []
+                self.btnFrqList.append(self.ids.btn0frq)
+                self.btnFrqList.append(self.ids.btn1frq)
+                self.btnFrqList.append(self.ids.btn2frq)
+                self.btnFrqList.append(self.ids.btn3frq)
+                self.btnFrqList.append(self.ids.btn4frq)
+                self.btnFrqList.append(self.ids.btn5frq)
+                self.btnFrqList.append(self.ids.btn6frq)
+
+                self.btnDCList = []
+                self.btnDCList.append(self.ids.btn0dc)
+                self.btnDCList.append(self.ids.btn1dc)
+                self.btnDCList.append(self.ids.btn2dc)
+                self.btnDCList.append(self.ids.btn3dc)
+                self.btnDCList.append(self.ids.btn4dc)
+                self.btnDCList.append(self.ids.btn5dc)
+                self.btnDCList.append(self.ids.btn6dc)
+
+                self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
+                self.progBar = ProgressBar(max=127)
+
+                self.myPopup.add_widget(self.progBar)
+
 		s = shelve.open('TestBoxData.db')
 
 		# Get a temporary copy of the global data dictionary stored in the shelve database
@@ -327,89 +362,39 @@ class SwitchScreen(Screen):
 		#globalData['pos'] is the current program variable
 		pos = globalData['pos']
 
-		#update buttons
-		self.ids.btn0.text = str(progData[pos]['buttons'][0]['title'])
-		self.ids.btn1.text = str(progData[pos]['buttons'][1]['title'])
-		self.ids.btn2.text = str(progData[pos]['buttons'][2]['title'])
-		self.ids.btn3.text = str(progData[pos]['buttons'][3]['title'])
-		self.ids.btn4.text = str(progData[pos]['buttons'][4]['title'])
-		self.ids.btn5.text = str(progData[pos]['buttons'][5]['title'])
-		self.ids.btn6.text = str(progData[pos]['buttons'][6]['title'])
-		self.ids.btn0.state = "normal"
-		self.ids.btn1.state = "normal"
-		self.ids.btn2.state = "normal"
-		self.ids.btn3.state = "normal"
-		self.ids.btn4.state = "normal"
-		self.ids.btn5.state = "normal"
-		self.ids.btn6.state = "normal"
-
 		#update screen title
 		self.ids.switchtitle.text = str(progData[pos]['title'])
 
-		#update button property labels
-		self.ids.btn0func.text = str(progData[pos]['buttons'][0]['func'])
-		if progData[pos]['buttons'][0]['func'] == 'PWM':
-			self.ids.btn0frq.text = str(progData[pos]['buttons'][0]['frq']) + ' Hz'
-			self.ids.btn0dc.text = str(progData[pos]['buttons'][0]['dc']) + "% dc"
-		else:
-			self.ids.btn0frq.text = ""
-			self.ids.btn0dc.text = ""
+		#update buttons
+		for i in range(7):
+			self.btnList[i].text = str(progData[pos]['buttons'][i]['title'])
+			self.btnList[i].state = "normal"
 
-		self.ids.btn1func.text = str(progData[pos]['buttons'][1]['func'])
-		if progData[pos]['buttons'][1]['func'] == 'PWM':
-			self.ids.btn1frq.text = str(progData[pos]['buttons'][1]['frq']) + ' Hz'
-			self.ids.btn1dc.text = str(progData[pos]['buttons'][1]['dc']) + "% dc"
-		else:
-			self.ids.btn1frq.text = ""
-			self.ids.btn1dc.text = ""
+			self.btnFuncList[i].text = str(progData[pos]['buttons'][i]['func'])
+			if progData[pos]['buttons'][i]['func'] == 'PWM':
+				self.btnFrqList[i].text = str(progData[pos]['buttons'][i]['frq']) + ' Hz'
+				self.btnDCList[i].text = str(progData[pos]['buttons'][i]['dc']) + "% dc"
+			else:
+				self.btnFrqList[i].text = ""
+				self.btnDCList[i].text = ""
 
-		self.ids.btn2func.text = str(progData[pos]['buttons'][2]['func'])
-		if progData[pos]['buttons'][2]['func'] == 'PWM':
-			self.ids.btn2frq.text = str(progData[pos]['buttons'][2]['frq']) + ' Hz'
-			self.ids.btn2dc.text = str(progData[pos]['buttons'][2]['dc']) + "% dc"
-		else:
-			self.ids.btn2frq.text = ""
-			self.ids.btn2dc.text = ""
+		# Now we need to start the current sensors. We want one thread per sensor to maximize speed
 
-		self.ids.btn3func.text = str(progData[pos]['buttons'][3]['func'])
-		if progData[pos]['buttons'][3]['func'] == 'PWM':
-			self.ids.btn3frq.text = str(progData[pos]['buttons'][3]['frq']) + ' Hz'
-			self.ids.btn3dc.text = str(progData[pos]['buttons'][3]['dc']) + "% dc"
-		else:
-			self.ids.btn3frq.text = ""
-			self.ids.btn3dc.text = ""
+		buttonData = progData[globalData['pos']]['buttons']
+		self.I2CLock = threading.Lock()
 
-		self.ids.btn4func.text = str(progData[pos]['buttons'][4]['func'])
-		if progData[pos]['buttons'][4]['func'] == 'PWM':
-			self.ids.btn4frq.text = str(progData[pos]['buttons'][4]['frq']) + ' Hz'
-			self.ids.btn4dc.text = str(progData[pos]['buttons'][4]['dc']) + "% dc"
-		else:
-			self.ids.btn4frq.text = ""
-			self.ids.btn4dc.text = ""
+		self.CurrentQueueList = []
+		for i in range(7):
+			self.CurrentQueueList.append(Queue.LifoQueue(2))
 
-		self.ids.btn5func.text = str(progData[pos]['buttons'][5]['func'])
-		if progData[pos]['buttons'][5]['func'] == 'PWM':
-			self.ids.btn5frq.text = str(progData[pos]['buttons'][5]['frq']) + ' Hz'
-			self.ids.btn5dc.text = str(progData[pos]['buttons'][5]['dc']) + "% dc"
-		else:
-			self.ids.btn5frq.text = ""
-			self.ids.btn5dc.text = ""
-
-		self.ids.btn6func.text = str(progData[pos]['buttons'][6]['func'])
-		if progData[pos]['buttons'][6]['func'] == 'PWM':
-			self.ids.btn6frq.text = str(progData[pos]['buttons'][6]['frq']) + ' Hz'
-			self.ids.btn6dc.text = str(progData[pos]['buttons'][6]['dc']) + "% dc"
-		else:
-			self.ids.btn6frq.text = ""
-			self.ids.btn6dc.text = ""
-
-		self.ids.togbtn0.state = "normal"
-		self.ids.togbtn1.state = "normal"
-		self.ids.togbtn2.state = "normal"
-		self.ids.togbtn3.state = "normal"
-		self.ids.togbtn4.state = "normal"
-		self.ids.togbtn5.state = "normal"
-		self.ids.togbtn6.state = "normal"
+		# CurrentSensor:
+		#		@params: buttonData   - Dictionary of data containing the functions of each button
+		#				 I2CLock      - ThreadLock object to prevent collisions on the I2C bus
+		#				 GPIOList	  - List of all of the GPIO objects that output functions
+		#				 bus 		  - SMBus object for I2C communication
+		#				 CurrentQueue - LIFO Queue that will be used for displaying the measured current values
+		self.curSensor = CurrentSensor.CurrentSensor(buttonData, self.I2CLock, bus, self.CurrentQueueList)
+		self.curSensor.startRead()
 
 		s.close()
 
@@ -424,41 +409,10 @@ class SwitchScreen(Screen):
 		hardPWM.hardware_PWM(12,0,0)
 		hardPWM.hardware_PWM(19,0,0)
 		hardPWM.hardware_PWM(13,0,0)
-		if self.ids.btn0.state == "down":
-			try:
-				self.currentSensor.stopRead(0)
-			except Exception as e:
-				raise e
-		elif self.ids.btn1.state == "down":
-			try:
-				self.currentSensor.stopRead(1)
-			except Exception as e:
-				raise e
-		elif self.ids.btn2.state == "down":
-			try:
-				self.currentSensor.stopRead(2)
-			except Exception as e:
-				raise e
-		elif self.ids.btn3.state == "down":
-			try:
-				self.currentSensor.stopRead(3)
-			except Exception as e:
-				raise e
-		elif self.ids.btn4.state == "down":
-			try:
-				self.currentSensor.stopRead(4)
-			except Exception as e:
-				raise e
-		elif self.ids.btn5.state == "down":
-			try:
-				self.currentSensor.stopRead(5)
-			except Exception as e:
-				raise e
-		elif self.ids.btn6.state == "down":
-			try:
-				self.currentSensor.stopRead(6)
-			except Exception as e:
-				raise e
+
+	def cleanUP(self):
+		self.curSensor.stopRead()
+		self.stopPWM()
 
 	#get button dc, frq to display below button
 	def getbtnInfo(self,btn):
@@ -479,7 +433,6 @@ class SwitchScreen(Screen):
 	#send new value to potentiometer via SPI bus
 	def updatePot(self):
 		intVal = int(self.ids.slide.value)
-
 		if self.ids.togbtn0.state == "down":
 			SPISelect(1)
 		elif self.ids.togbtn1.state == "down":
@@ -499,57 +452,77 @@ class SwitchScreen(Screen):
 		spi.writebytes(intVal)
 		SPISelect(0)
 
+	def loadingPopup(self, open_close):
+		if open_close:
+			self.myPopup.open()
+		else:
+			self.myPopup.dismiss()
+	@mainthread
+	def updateProgBar(self, val):
+		self.progBar.value = val
+
+	def I2C_ERROR(self):
+		GPIO.setup(25, GPIO.OUT)
+		GPIO.output(25, 1)
+		time.sleep(0.5)
+		GIO.output(25, 0)
+		GPIO.cleanup(25)
+
 	#determine and display slew rate on selected channel
-	def testSlewRate(self, num):
+	def testSlewRate(self):
+		SRList = []
 		if self.ids.togbtn0.state == "down":
-			SRList = getSlewRateSpectrum(1)
+			SRList = self.getSlewRateSpectrum(1)
 		elif self.ids.togbtn1.state == "down":
-			SRList = getSlewRateSpectrum(2)
+			SRList = self.getSlewRateSpectrum(2)
 		elif self.ids.togbtn2.state == "down":
-			SRList = getSlewRateSpectrum(3)
+			SRList = self.getSlewRateSpectrum(3)
 		elif self.ids.togbtn3.state == "down":
-			SRList = getSlewRateSpectrum(4)
+			SRList = self.getSlewRateSpectrum(4)
 		elif self.ids.togbtn4.state == "down":
-			SRList = getSlewRateSpectrum(5)
+			SRList = self.getSlewRateSpectrum(5)
 		elif self.ids.togbtn5.state == "down":
-			SRList = getSlewRateSpectrum(6)
+			SRList = self.getSlewRateSpectrum(6)
 		elif self.ids.togbtn6.state == "down":
-			SRList = getSlewRateSpectrum(7)
+			SRList = self.getSlewRateSpectrum(7)
+		else:
+			for i in range(128):
+				SRList.append(0)
 		self.slewRateList = SRList
-		stopPWM()
+		self.stopPWM()
+		self.loadingPopup(False)
 
 	# This function tests every single potentiometer possibility to give the tester an idea of
-	# what slew rates they will be able to use
+	# what slew rates they will be able to us
 	def getSlewRateSpectrum(self, num):
+
 		SPISelect(num)
-		SRData[]
+		tempDict = {1:20, 2:23, 3:24, 4:18, 5:12, 6:19, 7:13}
+		GPIOnum = tempDict[num]
+		self.updateProgBar(0)
+		SRData = []
 		AVGData = 0
-		tempDict = {3:18, 4:12, 5:19, 6:13}
-
-		for i in range(127):
-			spi.writebytes(i)
+		for i in range(128):
+			self.updateProgBar(i)
+			#spi.writebytes(i)
 			AVGData = 0
-			for j in range(20):
+			for j in range(10):
 				# Turn on the output
-				if num < 3:
-					self.GPIOList[Button].ChangeDutyCycle(100)
-					# Micro chip automatically measures the data
-					time.sleep(.0005)
-					adcReading = bus.read_i2c_block_data(0x0F, 0, 2)
-					self.GPIOList[Button].ChangeDutyCycle(0)
-				else:
-					hardPWM.hardware_PWM(tempDict[num],1, 1000000)
-					# Micro chip automatically measures the data
-					time.sleep(.0005)
-					adcReading = bus.read_i2c_block_data(0x0F, 0, 2)
-					hardPWM.hardware_PWM(tempDict[num],0, 0)
-
-				readingValue = adcReading[0]
-				readingValue += adcReading[1] << 2
-				AVGData += readingValue/20
-			
-			SRData.append(AVGData*0.00305)
-
+				GPIO.output(GPIOnum, 1)
+				# Micro chip automatically measures the data
+				time.sleep(0.0001)
+				self.I2CLock.acquire()
+				try:
+					adcReading = bus.read_i2c_block_data(80, 0, 2)
+				except:
+					self.I2C_ERROR()
+					adcReading = bus.read_i2c_block_data(80, 0, 2)
+				self.I2CLock.release()
+				GPIO.output(GPIOnum, 0)
+				readingValue = adcReading[1]
+				readingValue += adcReading[0] << 8
+				AVGData += readingValue/10
+			SRData.append(0.001*float(math.trunc(AVGData*0.00305*1000)))
 		return SRData
 
 	#outputs software pwm signals on raspberry pi when the button is pressed
@@ -570,11 +543,9 @@ class SwitchScreen(Screen):
 			dc = frq = ""
 
 		if self.btnList[num].state == "down":
-			self.currentSensor.startRead(num)
-			startFunction(num, buttons[num])
+			self.startFunction(num, buttons[num])
 		elif self.btnList[num].state == "normal":
-			stopFunction(num)
-			self.currentSensor.stopRead(num)
+			self.stopFunction(num)
 
 	# Given the button object and the button number this starts a signal on the proper GPIO
 	# pin with the correct duty cycle and frequency
@@ -592,27 +563,20 @@ class SwitchScreen(Screen):
 		else:
 			if (BtnNum == 0):
 				p0.ChangeFrequency(float(Button['freq']))
-				p0.ChangeFrequency(float(Button['dc']))
+				p0.ChangeDutyCycle(float(Button['dc']))
 			elif (BtnNum == 1):
 				p1.ChangeFrequency(float(Button['freq)']))
-				p1.ChangeFrequency(float(Button['dc']))
+				p1.ChangeDutyCycle(float(Button['dc']))
 			elif (BtnNum == 2):
 				p2.ChangeFrequency(float(Button['freq)']))
-				p2.ChangeFrequency(float(Button['dc']))
+				p2.ChangeDutyCycle(float(Button['dc']))
 			else:
 				hardPWM.hardware_PWM(tempDict[BtnNum], int(Button['freq']), 10000 * int(Button['dc']))
 
 	# Given the button number this function turns off the signal on the corresponding GPIO pin
 	def stopFunction(self, BtnNum):
-		tempDict = {3:18, 4:12, 5:19, 6:13}
-		if (BtnNum == 0):
-			p0.ChangeDutyCycle(100)
-		elif (BtnNum == 1):
-			p1.ChangeDutyCycle(100)
-		elif (BtnNum == 2):
-			p2.ChangeDutyCycle(100)
-		else:
-			hardPWM.hardware_PWM(tempDict[BtnNum], 0, 0)
+		tempDict = {0:20, 1:23, 2:24, 3:18, 4:12, 5:19, 6:13}
+		GPIO.output(tempDict[BtnNum], 0)
 
 class NewProgScreen(Screen):
 	#Upon pressing Next, commits the new program title at a new key in the dict
@@ -620,13 +584,13 @@ class NewProgScreen(Screen):
 	#Dict Structure is documented in OneNote under User Interface Design
 	def commitNewProgTitle(self):
 		s = shelve.open('TestBoxData.db')
-		
+
 		globalData = s['global']
 		progData = s['data']
 
 		pos = globalData['maxpos']
 		pos += 1
-		
+
 		progData[pos] = {'title':self.ids.entry.text, 'buttons':{0:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},1:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},2:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},3:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},4:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},5:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5},6:{'title':'0','func':'DC','frq':100,'dc':101, 'MaxCurrent':5}}}
 		globalData['pos'] = pos
 		globalData['maxpos'] = pos
@@ -702,7 +666,7 @@ class EditProgScreen(Screen):
 		globalData = s['global']
 		progData = s['data']
 		pos = globalData['pos']
-	
+
 		progData[pos]['buttons'][0]['title'] = self.ids.btntxt0.text
 		progData[pos]['buttons'][1]['title'] = self.ids.btntxt1.text
 		progData[pos]['buttons'][2]['title'] = self.ids.btntxt2.text
@@ -1115,6 +1079,7 @@ class EditProgScreen(Screen):
 class ScreenManagement(ScreenManager):
 	def __init__(self, **kwargs):
 		ScreenManager.__init__(self, **kwargs)
+
 
 class MainApp(App):
 	pass
