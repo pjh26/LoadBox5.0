@@ -11,6 +11,7 @@ GPIO.setup(26, GPIO.OUT)	# IS_0
 GPIO.setup(19, GPIO.OUT)	# IS_1
 GPIO.setup(13, GPIO.OUT)	# IS_2
 
+
 '''
 
 * This class will monitor current data given by an ADC on the switch box 4.0 board
@@ -23,12 +24,13 @@ GPIO.setup(13, GPIO.OUT)	# IS_2
 
 '''
 class CurrentSensor:
-	def __init__(self, Buttons, I2CLock, bus, CurrentQueueList):
+	def __init__(self, Buttons, I2CLock, bus, CurrentQueueList, GPIOList):
 
 		# Program is a dictionary of info, this will be passed into this variable.
 		# It will hold the info for all 7 buttons which will include current limit data
 		self.prog = Buttons
-
+		self.GPIOList = []
+		self.GPIOList.extend(GPIOList)
 		self.currentData = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0}
 		self.I2CLock = I2CLock
 		self.bus = bus
@@ -69,19 +71,22 @@ class CurrentSensor:
 			I2CLock.acquire()
 			I2CSelect(ButtonNum + 1)
 			# Read data from the adc
-			adcReading = bus.read_i2c_block_data(0x54, 0, 2)
+			adcReading = bus.read_i2c_block_data(84, 0, 2)
 			I2CLock.release()
 
 			# Convert adcReading into integer value
 			readingValue = adcReading[0] + (adcReading[1] << 2)
 			if (adcReading > self.prog[num]['MaxCurrent']):
 				GPIO.output(tempDict[num], 0)
-
+				if (num < 3):
+					self.GPIOList[num].ChangeDutyCycle(0)
+				else:
+					self.GPIOList[4].hardware_PWM(self.tempDict[num], 0, 0)
 			if Queue.empty():
 				try:
 					Queue.put(readingValue, False)
 				except Exception as e:
-					raise e
+					pass
 
 			if stopQueue.full():
 				break

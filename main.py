@@ -388,12 +388,12 @@ class SwitchScreen(Screen):
 			self.CurrentQueueList.append(Queue.LifoQueue(2))
 
 		# CurrentSensor:
-		#		@params: buttonData   - Dictionary of data containing the functions of each button
+		#		@params:	 buttonData   - Dictionary of data containing the functions of each button
 		#				 I2CLock      - ThreadLock object to prevent collisions on the I2C bus
-		#				 GPIOList	  - List of all of the GPIO objects that output functions
 		#				 bus 		  - SMBus object for I2C communication
 		#				 CurrentQueue - LIFO Queue that will be used for displaying the measured current values
-		self.curSensor = CurrentSensor.CurrentSensor(buttonData, self.I2CLock, bus, self.CurrentQueueList)
+		# 				 GPIOList     - List of all GPIO objects that output functions
+		self.curSensor = CurrentSensor.CurrentSensor(buttonData, self.I2CLock, bus, self.CurrentQueueList, self.GPIOList)
 		self.curSensor.startRead()
 
 		s.close()
@@ -505,10 +505,12 @@ class SwitchScreen(Screen):
 		for i in range(128):
 			self.updateProgBar(i)
 			#spi.writebytes(i)
+			successfulReads = 10
 			AVGData = 0
+			Total = 0
 			for j in range(10):
 				# Turn on the output
-				GPIO.output(GPIOnum, 1)
+				hardPWM.write(GPIOnum, 1)
 				# Micro chip automatically measures the data
 				time.sleep(0.0001)
 				self.I2CLock.acquire()
@@ -516,12 +518,12 @@ class SwitchScreen(Screen):
 					adcReading = bus.read_i2c_block_data(80, 0, 2)
 				except:
 					self.I2C_ERROR()
-					adcReading = bus.read_i2c_block_data(80, 0, 2)
+					successfulReads -= 1
 				self.I2CLock.release()
-				GPIO.output(GPIOnum, 0)
-				readingValue = adcReading[1]
-				readingValue += adcReading[0] << 8
-				AVGData += readingValue/10
+				hardPWM.write(GPIOnum, 0)
+				Total +=  adcReading[1]
+				Total += adcReading[0] << 8
+			AVGData = Total/successfulReads
 			SRData.append(0.001*float(math.trunc(AVGData*0.00305*1000)))
 		return SRData
 
@@ -552,31 +554,25 @@ class SwitchScreen(Screen):
 	def startFunction(self, BtnNum, Button):
 		tempDict = {3:18, 4:12, 5:19, 6:13}
 		if Button['func'] == 'DC':
-			if (BtnNum == 0):
-				p0.ChangeDutyCycle(100)
-			elif (BtnNum == 1):
-				p1.ChangeDutyCycle(100)
-			elif (BtnNum == 2):
-				p2.ChangeDutyCycle(100)
+			if (BtnNum < 3):
+				self.GPIOList[BtnNum].ChangeDutyCycle(100)
 			else:
 				hardPWM.hardware_PWM(tempDict[BtnNum], 1, 1000000)
 		else:
-			if (BtnNum == 0):
-				p0.ChangeFrequency(float(Button['freq']))
-				p0.ChangeDutyCycle(float(Button['dc']))
-			elif (BtnNum == 1):
-				p1.ChangeFrequency(float(Button['freq)']))
-				p1.ChangeDutyCycle(float(Button['dc']))
-			elif (BtnNum == 2):
-				p2.ChangeFrequency(float(Button['freq)']))
-				p2.ChangeDutyCycle(float(Button['dc']))
+			if (BtnNum < 3):
+				self.GPIOList[BtnNum].ChangeFrequency(float(Button['frq']))
+				self.GPIOList[BtnNum].ChangeDutyCycle(float(Button['dc']))
 			else:
-				hardPWM.hardware_PWM(tempDict[BtnNum], int(Button['freq']), 10000 * int(Button['dc']))
+				hardPWM.hardware_PWM(tempDict[BtnNum], int(Button['frq']), 10000 * int(Button['dc']))
 
 	# Given the button number this function turns off the signal on the corresponding GPIO pin
 	def stopFunction(self, BtnNum):
-		tempDict = {0:20, 1:23, 2:24, 3:18, 4:12, 5:19, 6:13}
-		GPIO.output(tempDict[BtnNum], 0)
+		tempDict = {3:18, 4:12, 5:19, 6:13}
+		if (BtnNum < 3):
+			self.GPIOList[BtnNum].ChangeDutyCycle(0)
+		else:
+			hardPWM.hardware_PWM(tempDict[BtnNum], 0, 0)
+
 
 class NewProgScreen(Screen):
 	#Upon pressing Next, commits the new program title at a new key in the dict
