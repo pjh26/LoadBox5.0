@@ -309,47 +309,46 @@ class SwitchScreen(Screen):
 
 	#this updates the buttons upon entering the screen to reflect their current state
 	def updateScreen(self):
+		self.btnList = []
+		self.btnList.append(self.ids.btn0)
+		self.btnList.append(self.ids.btn1)
+		self.btnList.append(self.ids.btn2)
+		self.btnList.append(self.ids.btn3)
+		self.btnList.append(self.ids.btn4)
+		self.btnList.append(self.ids.btn5)
+		self.btnList.append(self.ids.btn6)
 
-                self.btnList = []
-                self.btnList.append(self.ids.btn0)
-                self.btnList.append(self.ids.btn1)
-                self.btnList.append(self.ids.btn2)
-                self.btnList.append(self.ids.btn3)
-                self.btnList.append(self.ids.btn4)
-                self.btnList.append(self.ids.btn5)
-                self.btnList.append(self.ids.btn6)
+		self.btnFuncList = []
+		self.btnFuncList.append(self.ids.btn0func)
+		self.btnFuncList.append(self.ids.btn1func)
+		self.btnFuncList.append(self.ids.btn2func)
+		self.btnFuncList.append(self.ids.btn3func)
+		self.btnFuncList.append(self.ids.btn4func)
+		self.btnFuncList.append(self.ids.btn5func)
+		self.btnFuncList.append(self.ids.btn6func)
 
-                self.btnFuncList = []
-                self.btnFuncList.append(self.ids.btn0func)
-                self.btnFuncList.append(self.ids.btn1func)
-                self.btnFuncList.append(self.ids.btn2func)
-                self.btnFuncList.append(self.ids.btn3func)
-                self.btnFuncList.append(self.ids.btn4func)
-                self.btnFuncList.append(self.ids.btn5func)
-                self.btnFuncList.append(self.ids.btn6func)
+		self.btnFrqList = []
+		self.btnFrqList.append(self.ids.btn0frq)
+		self.btnFrqList.append(self.ids.btn1frq)
+		self.btnFrqList.append(self.ids.btn2frq)
+		self.btnFrqList.append(self.ids.btn3frq)
+		self.btnFrqList.append(self.ids.btn4frq)
+		self.btnFrqList.append(self.ids.btn5frq)
+		self.btnFrqList.append(self.ids.btn6frq)
 
-                self.btnFrqList = []
-                self.btnFrqList.append(self.ids.btn0frq)
-                self.btnFrqList.append(self.ids.btn1frq)
-                self.btnFrqList.append(self.ids.btn2frq)
-                self.btnFrqList.append(self.ids.btn3frq)
-                self.btnFrqList.append(self.ids.btn4frq)
-                self.btnFrqList.append(self.ids.btn5frq)
-                self.btnFrqList.append(self.ids.btn6frq)
+		self.btnDCList = []
+		self.btnDCList.append(self.ids.btn0dc)
+		self.btnDCList.append(self.ids.btn1dc)
+		self.btnDCList.append(self.ids.btn2dc)
+		self.btnDCList.append(self.ids.btn3dc)
+		self.btnDCList.append(self.ids.btn4dc)
+		self.btnDCList.append(self.ids.btn5dc)
+		self.btnDCList.append(self.ids.btn6dc)
 
-                self.btnDCList = []
-                self.btnDCList.append(self.ids.btn0dc)
-                self.btnDCList.append(self.ids.btn1dc)
-                self.btnDCList.append(self.ids.btn2dc)
-                self.btnDCList.append(self.ids.btn3dc)
-                self.btnDCList.append(self.ids.btn4dc)
-                self.btnDCList.append(self.ids.btn5dc)
-                self.btnDCList.append(self.ids.btn6dc)
+		self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
+		self.progBar = ProgressBar(max=127)
 
-                self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
-                self.progBar = ProgressBar(max=127)
-
-                self.myPopup.add_widget(self.progBar)
+		self.myPopup.add_widget(self.progBar)
 
 		s = shelve.open('TestBoxData.db')
 
@@ -378,17 +377,14 @@ class SwitchScreen(Screen):
 				self.btnFrqList[i].text = ""
 				self.btnDCList[i].text = ""
 
-		# Now we need to start the current sensors. We want one thread per sensor to maximize speed
-
 		buttonData = progData[globalData['pos']]['buttons']
 		self.I2CLock = threading.Lock()
-
 		self.CurrentQueueList = []
 		for i in range(7):
 			self.CurrentQueueList.append(Queue.LifoQueue(2))
 
 		# CurrentSensor:
-		#		@params:	 buttonData   - Dictionary of data containing the functions of each button
+		#		@params: buttonData   - Dictionary of data containing the functions of each button
 		#				 I2CLock      - ThreadLock object to prevent collisions on the I2C bus
 		#				 bus 		  - SMBus object for I2C communication
 		#				 CurrentQueue - LIFO Queue that will be used for displaying the measured current values
@@ -397,6 +393,19 @@ class SwitchScreen(Screen):
 		self.curSensor.startRead()
 
 		s.close()
+
+		self.currentUpdateEvent = Clock.schedule_interval(lambda dt: self.updateCurrent(), .15)
+
+	# This updates the current lables
+	def updateCurrent(self):
+		if self.stopSignal.empty():
+			self.ids.btn0cur.text = str(self.CurrentQueueList[0].get(False)) + " A"
+			self.ids.btn1cur.text = str(self.CurrentQueueList[1].get(False)) + " A"
+			self.ids.btn2cur.text = str(self.CurrentQueueList[2].get(False)) + " A"
+			self.ids.btn3cur.text = str(self.CurrentQueueList[3].get(False)) + " A"
+			self.ids.btn4cur.text = str(self.CurrentQueueList[4].get(False)) + " A"
+			self.ids.btn5cur.text = str(self.CurrentQueueList[5].get(False)) + " A"
+			self.ids.btn6cur.text = str(self.CurrentQueueList[6].get(False)) + " A"
 
 	# Called when the back button is pressed
 	# Stops PWM outputs on leaving the switch screen and makes sure that all current sensor
