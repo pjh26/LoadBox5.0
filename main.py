@@ -89,7 +89,10 @@ hardPWM = pigpio.pi()
 #initialize SPI bus
 spi = spidev.SpiDev()
 spi.open(0, 0)
-spi.max_speed_hz = 5000000
+
+# The maximum speed has to be one of the values found on this webpage
+# https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
+spi.max_speed_hz = 15600000
 
 # Initialize select outputs
 GPIO.setup(17, GPIO.OUT)	# CS2
@@ -100,6 +103,10 @@ GPIO.output(27, 0)
 
 GPIO.setup(22, GPIO.OUT)	# CS0
 GPIO.output(22, 0)
+
+# Initialize MCLR output
+GPIO.setup(25, GPIO.OUT)
+GPIO.output(25, 0)
 
 bus = SMBus(1)
 
@@ -296,7 +303,7 @@ class SwitchScreen(Screen):
 	def __init__(self, **kwargs):
 		Screen.__init__(self, **kwargs)
 		self.slewRateList = []
-		for i in range(128):
+		for i in range(257):
 			self.slewRateList.append(0)
 		self.GPIOList = []
 		self.GPIOList.append(p0)
@@ -309,46 +316,47 @@ class SwitchScreen(Screen):
 
 	#this updates the buttons upon entering the screen to reflect their current state
 	def updateScreen(self):
-		self.btnList = []
-		self.btnList.append(self.ids.btn0)
-		self.btnList.append(self.ids.btn1)
-		self.btnList.append(self.ids.btn2)
-		self.btnList.append(self.ids.btn3)
-		self.btnList.append(self.ids.btn4)
-		self.btnList.append(self.ids.btn5)
-		self.btnList.append(self.ids.btn6)
 
-		self.btnFuncList = []
-		self.btnFuncList.append(self.ids.btn0func)
-		self.btnFuncList.append(self.ids.btn1func)
-		self.btnFuncList.append(self.ids.btn2func)
-		self.btnFuncList.append(self.ids.btn3func)
-		self.btnFuncList.append(self.ids.btn4func)
-		self.btnFuncList.append(self.ids.btn5func)
-		self.btnFuncList.append(self.ids.btn6func)
+                self.btnList = []
+                self.btnList.append(self.ids.btn0)
+                self.btnList.append(self.ids.btn1)
+                self.btnList.append(self.ids.btn2)
+                self.btnList.append(self.ids.btn3)
+                self.btnList.append(self.ids.btn4)
+                self.btnList.append(self.ids.btn5)
+                self.btnList.append(self.ids.btn6)
 
-		self.btnFrqList = []
-		self.btnFrqList.append(self.ids.btn0frq)
-		self.btnFrqList.append(self.ids.btn1frq)
-		self.btnFrqList.append(self.ids.btn2frq)
-		self.btnFrqList.append(self.ids.btn3frq)
-		self.btnFrqList.append(self.ids.btn4frq)
-		self.btnFrqList.append(self.ids.btn5frq)
-		self.btnFrqList.append(self.ids.btn6frq)
+                self.btnFuncList = []
+                self.btnFuncList.append(self.ids.btn0func)
+                self.btnFuncList.append(self.ids.btn1func)
+                self.btnFuncList.append(self.ids.btn2func)
+                self.btnFuncList.append(self.ids.btn3func)
+                self.btnFuncList.append(self.ids.btn4func)
+                self.btnFuncList.append(self.ids.btn5func)
+                self.btnFuncList.append(self.ids.btn6func)
 
-		self.btnDCList = []
-		self.btnDCList.append(self.ids.btn0dc)
-		self.btnDCList.append(self.ids.btn1dc)
-		self.btnDCList.append(self.ids.btn2dc)
-		self.btnDCList.append(self.ids.btn3dc)
-		self.btnDCList.append(self.ids.btn4dc)
-		self.btnDCList.append(self.ids.btn5dc)
-		self.btnDCList.append(self.ids.btn6dc)
+                self.btnFrqList = []
+                self.btnFrqList.append(self.ids.btn0frq)
+                self.btnFrqList.append(self.ids.btn1frq)
+                self.btnFrqList.append(self.ids.btn2frq)
+                self.btnFrqList.append(self.ids.btn3frq)
+                self.btnFrqList.append(self.ids.btn4frq)
+                self.btnFrqList.append(self.ids.btn5frq)
+                self.btnFrqList.append(self.ids.btn6frq)
 
-		self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
-		self.progBar = ProgressBar(max=127)
+                self.btnDCList = []
+                self.btnDCList.append(self.ids.btn0dc)
+                self.btnDCList.append(self.ids.btn1dc)
+                self.btnDCList.append(self.ids.btn2dc)
+                self.btnDCList.append(self.ids.btn3dc)
+                self.btnDCList.append(self.ids.btn4dc)
+                self.btnDCList.append(self.ids.btn5dc)
+                self.btnDCList.append(self.ids.btn6dc)
 
-		self.myPopup.add_widget(self.progBar)
+                self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
+                self.progBar = ProgressBar(max=127)
+
+                self.myPopup.add_widget(self.progBar)
 
 		s = shelve.open('TestBoxData.db')
 
@@ -377,14 +385,17 @@ class SwitchScreen(Screen):
 				self.btnFrqList[i].text = ""
 				self.btnDCList[i].text = ""
 
+		# Now we need to start the current sensors. We want one thread per sensor to maximize speed
+
 		buttonData = progData[globalData['pos']]['buttons']
 		self.I2CLock = threading.Lock()
+
 		self.CurrentQueueList = []
 		for i in range(7):
 			self.CurrentQueueList.append(Queue.LifoQueue(2))
 
 		# CurrentSensor:
-		#		@params: buttonData   - Dictionary of data containing the functions of each button
+		#		@params:	 buttonData   - Dictionary of data containing the functions of each button
 		#				 I2CLock      - ThreadLock object to prevent collisions on the I2C bus
 		#				 bus 		  - SMBus object for I2C communication
 		#				 CurrentQueue - LIFO Queue that will be used for displaying the measured current values
@@ -393,19 +404,6 @@ class SwitchScreen(Screen):
 		self.curSensor.startRead()
 
 		s.close()
-
-		self.currentUpdateEvent = Clock.schedule_interval(lambda dt: self.updateCurrent(), .15)
-
-	# This updates the current lables
-	def updateCurrent(self):
-		if self.stopSignal.empty():
-			self.ids.btn0cur.text = str(self.CurrentQueueList[0].get(False)) + " A"
-			self.ids.btn1cur.text = str(self.CurrentQueueList[1].get(False)) + " A"
-			self.ids.btn2cur.text = str(self.CurrentQueueList[2].get(False)) + " A"
-			self.ids.btn3cur.text = str(self.CurrentQueueList[3].get(False)) + " A"
-			self.ids.btn4cur.text = str(self.CurrentQueueList[4].get(False)) + " A"
-			self.ids.btn5cur.text = str(self.CurrentQueueList[5].get(False)) + " A"
-			self.ids.btn6cur.text = str(self.CurrentQueueList[6].get(False)) + " A"
 
 	# Called when the back button is pressed
 	# Stops PWM outputs on leaving the switch screen and makes sure that all current sensor
@@ -471,11 +469,9 @@ class SwitchScreen(Screen):
 		self.progBar.value = val
 
 	def I2C_ERROR(self):
-		GPIO.setup(25, GPIO.OUT)
 		GPIO.output(25, 1)
 		time.sleep(0.5)
-		GIO.output(25, 0)
-		GPIO.cleanup(25)
+		GPIO.output(25, 0)
 
 	#determine and display slew rate on selected channel
 	def testSlewRate(self):
@@ -495,7 +491,7 @@ class SwitchScreen(Screen):
 		elif self.ids.togbtn6.state == "down":
 			SRList = self.getSlewRateSpectrum(7)
 		else:
-			for i in range(128):
+			for i in range(257):
 				SRList.append(0)
 		self.slewRateList = SRList
 		self.stopPWM()
@@ -511,9 +507,10 @@ class SwitchScreen(Screen):
 		self.updateProgBar(0)
 		SRData = []
 		AVGData = 0
-		for i in range(128):
+		SPISelect(num)
+		for i in range(257):
 			self.updateProgBar(i)
-			#spi.writebytes(i)
+			spi.writebytes([0,i])
 			successfulReads = 10
 			AVGData = 0
 			Total = 0
@@ -528,12 +525,19 @@ class SwitchScreen(Screen):
 				except:
 					self.I2C_ERROR()
 					successfulReads -= 1
+					adcReading = [0,0]
+
 				self.I2CLock.release()
 				hardPWM.write(GPIOnum, 0)
 				Total +=  adcReading[1]
 				Total += adcReading[0] << 8
-			AVGData = Total/successfulReads
+			if successfulReads > 0:
+				AVGData = Total/successfulReads
+			else:
+				AVGData = 0
 			SRData.append(0.001*float(math.trunc(AVGData*0.00305*1000)))
+
+		SPISelect(0)
 		return SRData
 
 	#outputs software pwm signals on raspberry pi when the button is pressed
