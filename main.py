@@ -110,6 +110,7 @@ GPIO.output(25, 0)
 
 bus = SMBus(1)
 
+# SPISelect - interacts with the decoder to select the desired SPI device
 def SPISelect(num):
 	if (num == 0):
 		GPIO.output(22, 0)
@@ -298,8 +299,12 @@ class ChooseProgScreen(Screen):
 		s['global'] = globalData
 		s.close()
 
+# SwitchScreen defines the screen that allows the suer to turn on and off outputs.
+# Additionally, it has a page where the user can choose the slew rate from a list of
+# possible values
 class SwitchScreen(Screen):
 
+	# Here we initialize anything that will be the same any time this page is opened
 	def __init__(self, **kwargs):
 		Screen.__init__(self, **kwargs)
 		self.slewRateList = []
@@ -311,52 +316,54 @@ class SwitchScreen(Screen):
 		self.GPIOList.append(p2)
 		self.GPIOList.append(hardPWM)
 
+	# This function gives the slider the correct slew rate value to display
 	def getSlideValue(self, slideVal):
 		return str(self.slewRateList[int(slideVal)]) + " V/us"
 
-	#this updates the buttons upon entering the screen to reflect their current state
+	# This function is similar to the init, however, it initializes items that 
+	# will be different from program to program.
 	def updateScreen(self):
 
-                self.btnList = []
-                self.btnList.append(self.ids.btn0)
-                self.btnList.append(self.ids.btn1)
-                self.btnList.append(self.ids.btn2)
-                self.btnList.append(self.ids.btn3)
-                self.btnList.append(self.ids.btn4)
-                self.btnList.append(self.ids.btn5)
-                self.btnList.append(self.ids.btn6)
+        self.btnList = []
+        self.btnList.append(self.ids.btn0)
+        self.btnList.append(self.ids.btn1)
+        self.btnList.append(self.ids.btn2)
+        self.btnList.append(self.ids.btn3)
+        self.btnList.append(self.ids.btn4)
+        self.btnList.append(self.ids.btn5)
+        self.btnList.append(self.ids.btn6)
 
-                self.btnFuncList = []
-                self.btnFuncList.append(self.ids.btn0func)
-                self.btnFuncList.append(self.ids.btn1func)
-                self.btnFuncList.append(self.ids.btn2func)
-                self.btnFuncList.append(self.ids.btn3func)
-                self.btnFuncList.append(self.ids.btn4func)
-                self.btnFuncList.append(self.ids.btn5func)
-                self.btnFuncList.append(self.ids.btn6func)
+        self.btnFuncList = []
+        self.btnFuncList.append(self.ids.btn0func)
+        self.btnFuncList.append(self.ids.btn1func)
+        self.btnFuncList.append(self.ids.btn2func)
+        self.btnFuncList.append(self.ids.btn3func)
+        self.btnFuncList.append(self.ids.btn4func)
+        self.btnFuncList.append(self.ids.btn5func)
+        self.btnFuncList.append(self.ids.btn6func)
 
-                self.btnFrqList = []
-                self.btnFrqList.append(self.ids.btn0frq)
-                self.btnFrqList.append(self.ids.btn1frq)
-                self.btnFrqList.append(self.ids.btn2frq)
-                self.btnFrqList.append(self.ids.btn3frq)
-                self.btnFrqList.append(self.ids.btn4frq)
-                self.btnFrqList.append(self.ids.btn5frq)
-                self.btnFrqList.append(self.ids.btn6frq)
+        self.btnFrqList = []
+        self.btnFrqList.append(self.ids.btn0frq)
+        self.btnFrqList.append(self.ids.btn1frq)
+        self.btnFrqList.append(self.ids.btn2frq)
+        self.btnFrqList.append(self.ids.btn3frq)
+        self.btnFrqList.append(self.ids.btn4frq)
+        self.btnFrqList.append(self.ids.btn5frq)
+        self.btnFrqList.append(self.ids.btn6frq)
 
-                self.btnDCList = []
-                self.btnDCList.append(self.ids.btn0dc)
-                self.btnDCList.append(self.ids.btn1dc)
-                self.btnDCList.append(self.ids.btn2dc)
-                self.btnDCList.append(self.ids.btn3dc)
-                self.btnDCList.append(self.ids.btn4dc)
-                self.btnDCList.append(self.ids.btn5dc)
-                self.btnDCList.append(self.ids.btn6dc)
+        self.btnDCList = []
+        self.btnDCList.append(self.ids.btn0dc)
+        self.btnDCList.append(self.ids.btn1dc)
+        self.btnDCList.append(self.ids.btn2dc)
+        self.btnDCList.append(self.ids.btn3dc)
+        self.btnDCList.append(self.ids.btn4dc)
+        self.btnDCList.append(self.ids.btn5dc)
+        self.btnDCList.append(self.ids.btn6dc)
 
-                self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
-                self.progBar = ProgressBar(max=127)
+        self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
+        self.progBar = ProgressBar(max=127)
 
-                self.myPopup.add_widget(self.progBar)
+        self.myPopup.add_widget(self.progBar)
 
 		s = shelve.open('TestBoxData.db')
 
@@ -385,22 +392,22 @@ class SwitchScreen(Screen):
 				self.btnFrqList[i].text = ""
 				self.btnDCList[i].text = ""
 
-		# Now we need to start the current sensors. We want one thread per sensor to maximize speed
 
-		buttonData = progData[globalData['pos']]['buttons']
-		self.I2CLock = threading.Lock()
-
-		self.CurrentQueueList = []
-		for i in range(7):
-			self.CurrentQueueList.append(Queue.LifoQueue(2))
-
+		# Here is where we will initialize the current sensor
 		# CurrentSensor:
-		#		@params:	 buttonData   - Dictionary of data containing the functions of each button
+		#		@params: buttonData   - Dictionary of data containing the functions of each button
 		#				 I2CLock      - ThreadLock object to prevent collisions on the I2C bus
 		#				 bus 		  - SMBus object for I2C communication
 		#				 CurrentQueue - LIFO Queue that will be used for displaying the measured current values
 		# 				 GPIOList     - List of all GPIO objects that output functions
+		buttonData = progData[globalData['pos']]['buttons']
+		self.I2CLock = threading.Lock()
+		self.CurrentQueueList = []
+		for i in range(7):
+			self.CurrentQueueList.append(Queue.LifoQueue(2))
 		self.curSensor = CurrentSensor.CurrentSensor(buttonData, self.I2CLock, bus, self.CurrentQueueList, self.GPIOList)
+
+		# Start the current sensing!
 		self.curSensor.startRead()
 
 		s.close()
