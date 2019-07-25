@@ -13,7 +13,7 @@ from kivy.properties import StringProperty
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
-from kivy.clock import mainthread
+from kivy.clock import mainthread, Clock
 from smbus2 import SMBus
 import shelve
 import pigpio
@@ -61,7 +61,6 @@ Config.write()
 #-------------------------------------------------------------------------------#
 
 
-
 #initialize software pwm
 #btn0
 GPIO.setup(20, GPIO.OUT)
@@ -77,7 +76,6 @@ p1.start(0)
 GPIO.setup(24, GPIO.OUT)
 p2 = GPIO.PWM(24, 1)
 p2.start(0)
-
 
 #initialize hardware PWM for channels 3, 4, 5, and 6
 GPIO.setup(18, GPIO.OUT)
@@ -323,47 +321,55 @@ class SwitchScreen(Screen):
 	# This function is similar to the init, however, it initializes items that 
 	# will be different from program to program.
 	def updateScreen(self):
+	        self.btnList = []
+	        self.btnList.append(self.ids.btn0)
+	        self.btnList.append(self.ids.btn1)
+	        self.btnList.append(self.ids.btn2)
+	        self.btnList.append(self.ids.btn3)
+	        self.btnList.append(self.ids.btn4)
+	        self.btnList.append(self.ids.btn5)
+	        self.btnList.append(self.ids.btn6)
 
-        self.btnList = []
-        self.btnList.append(self.ids.btn0)
-        self.btnList.append(self.ids.btn1)
-        self.btnList.append(self.ids.btn2)
-        self.btnList.append(self.ids.btn3)
-        self.btnList.append(self.ids.btn4)
-        self.btnList.append(self.ids.btn5)
-        self.btnList.append(self.ids.btn6)
+	        self.btnFuncList = []
+	        self.btnFuncList.append(self.ids.btn0func)
+	        self.btnFuncList.append(self.ids.btn1func)
+	        self.btnFuncList.append(self.ids.btn2func)
+	        self.btnFuncList.append(self.ids.btn3func)
+	        self.btnFuncList.append(self.ids.btn4func)
+	        self.btnFuncList.append(self.ids.btn5func)
+	        self.btnFuncList.append(self.ids.btn6func)
 
-        self.btnFuncList = []
-        self.btnFuncList.append(self.ids.btn0func)
-        self.btnFuncList.append(self.ids.btn1func)
-        self.btnFuncList.append(self.ids.btn2func)
-        self.btnFuncList.append(self.ids.btn3func)
-        self.btnFuncList.append(self.ids.btn4func)
-        self.btnFuncList.append(self.ids.btn5func)
-        self.btnFuncList.append(self.ids.btn6func)
+	        self.btnFrqList = []
+	        self.btnFrqList.append(self.ids.btn0frq)
+	        self.btnFrqList.append(self.ids.btn1frq)
+	        self.btnFrqList.append(self.ids.btn2frq)
+	        self.btnFrqList.append(self.ids.btn3frq)
+	        self.btnFrqList.append(self.ids.btn4frq)
+	        self.btnFrqList.append(self.ids.btn5frq)
+	        self.btnFrqList.append(self.ids.btn6frq)
 
-        self.btnFrqList = []
-        self.btnFrqList.append(self.ids.btn0frq)
-        self.btnFrqList.append(self.ids.btn1frq)
-        self.btnFrqList.append(self.ids.btn2frq)
-        self.btnFrqList.append(self.ids.btn3frq)
-        self.btnFrqList.append(self.ids.btn4frq)
-        self.btnFrqList.append(self.ids.btn5frq)
-        self.btnFrqList.append(self.ids.btn6frq)
+	        self.btnDCList = []
+	        self.btnDCList.append(self.ids.btn0dc)
+	        self.btnDCList.append(self.ids.btn1dc)
+	        self.btnDCList.append(self.ids.btn2dc)
+	        self.btnDCList.append(self.ids.btn3dc)
+	        self.btnDCList.append(self.ids.btn4dc)
+	        self.btnDCList.append(self.ids.btn5dc)
+	        self.btnDCList.append(self.ids.btn6dc)
 
-        self.btnDCList = []
-        self.btnDCList.append(self.ids.btn0dc)
-        self.btnDCList.append(self.ids.btn1dc)
-        self.btnDCList.append(self.ids.btn2dc)
-        self.btnDCList.append(self.ids.btn3dc)
-        self.btnDCList.append(self.ids.btn4dc)
-        self.btnDCList.append(self.ids.btn5dc)
-        self.btnDCList.append(self.ids.btn6dc)
+	        self.btnCurList = []
+	        self.btnCurList.append(self.ids.btn0cur)
+	        self.btnCurList.append(self.ids.btn1cur)
+	        self.btnCurList.append(self.ids.btn2cur)
+	        self.btnCurList.append(self.ids.btn3cur)
+	        self.btnCurList.append(self.ids.btn4cur)
+	        self.btnCurList.append(self.ids.btn5cur)
+	        self.btnCurList.append(self.ids.btn6cur)
 
-        self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
-        self.progBar = ProgressBar(max=127)
+	        self.myPopup = Popup(title="Loading...", size_hint=(0.6, 0.1), auto_dismiss=False)
+	        self.progBar = ProgressBar(max=127)
 
-        self.myPopup.add_widget(self.progBar)
+	        self.myPopup.add_widget(self.progBar)
 
 		s = shelve.open('TestBoxData.db')
 
@@ -405,8 +411,10 @@ class SwitchScreen(Screen):
 		self.CurrentQueueList = []
 		for i in range(7):
 			self.CurrentQueueList.append(Queue.LifoQueue(2))
-		self.curSensor = CurrentSensor.CurrentSensor(buttonData, self.I2CLock, bus, self.CurrentQueueList, self.GPIOList)
 
+		self.curSensor = CurrentSensor.CurrentSensor(buttonData, self.I2CLock, bus, self.CurrentQueueList)
+
+		self.currentUpdateEvent = Clock.schedule_interval(lambda dt: self.updateCurrent(), 0.15)
 		# Start the current sensing!
 		self.curSensor.startRead()
 
@@ -427,6 +435,21 @@ class SwitchScreen(Screen):
 	def cleanUP(self):
 		self.curSensor.stopRead()
 		self.stopPWM()
+
+	def updateCurrent(self):
+		curValue = 0
+		for i in range(7):
+			if self.btnList[i].state == "down":
+				try:
+					curValue = self.CurrentQueueList[i].get(False)
+				except:
+					pass
+				if curValue == -1:
+					self.btnList[i].state = "normal"
+					self.btnCurList[i].bold = True
+					self.btnCurList[i].color = [1, 0, 0, 0]
+				else:
+					self.btnCurList[i].text = str(curValue) + " A"
 
 	#get button dc, frq to display below button
 	def getbtnInfo(self,btn):
@@ -547,7 +570,7 @@ class SwitchScreen(Screen):
 		SPISelect(0)
 		return SRData
 
-	#outputs software pwm signals on raspberry pi when the button is pressed
+ 	#outputs software pwm signals on raspberry pi when the button is pressed
 	def btnOut(self, num):
 		#open database and save copy to temporary dictionary
 		s = shelve.open('TestBoxData.db')
@@ -556,6 +579,9 @@ class SwitchScreen(Screen):
 		pos = globalData['pos']
 		buttons = progData[pos]['buttons']
 		s.close()
+
+		self.btnCurList[num].bold = False
+		self.btnCurList[num].color = [1, 1, 1, 1]
 
 		#get frequency and duty cycle values
 		try:

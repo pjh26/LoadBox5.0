@@ -24,13 +24,11 @@ GPIO.setup(13, GPIO.OUT)	# IS_2
 
 '''
 class CurrentSensor:
-	def __init__(self, Buttons, I2CLock, bus, CurrentQueueList, GPIOList):
+	def __init__(self, Buttons, I2CLock, bus, CurrentQueueList):
 
 		# Program is a dictionary of info, this will be passed into this variable.
 		# It will hold the info for all 7 buttons which will include current limit data
 		self.prog = Buttons
-		self.GPIOList = []
-		self.GPIOList.extend(GPIOList)
 		self.currentData = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0}
 		self.I2CLock = I2CLock
 		self.bus = bus
@@ -48,41 +46,56 @@ class CurrentSensor:
 	# This is the function that is called in the main program when a button is pressed. It
 	# creates a new thread for an internal function so that every button can run on a
 	# seperate thread.
-	def startRead(self):
-		try:
-			for i in range(7):
-				self.stopQueueList[i].get(False)
-				self.threadData[i].start()
-		except Exception as e:
-			pass
+	def startRead(self, btn = -1):
+		if btn == -1:
+			try:
+				for i in range(7):
+					self.stopQueueList[i].get(False)
+					self.threadData[i].start()
+			except Exception as e:
+				pass
+		else:
+			try:
+				self.stopQueueList[btn].get(False)
+				self.threadData[btn].start()
+			except Exception as e:
+				pass
 
-	def stopRead(self):
-		try:
+	def stopRead(self, btn = -1):
+		if btn == -1:
 			for i in range(7):
-				self.stopQueueList[i].put(False)
-				self.threadData[i].join()
-		except Exception as e:
-			pass
+				try:
+					self.stopQueueList[i].put(False)
+					self.threadData[i].join()
+				except Exception as e:
+					pass
+		else:
+			try:
+				self.stopQueueList[num].put(False)
+				self.threadData[num].join()
+			except Exception as e:
+				pass
 
 	# This function begins the loop that reads the adc data and determines if the current is
 	# going over the set limit. If it is then
 	def read(self, ButtonNum, I2CLock, bus, Queue, stopQueue):
+		maxCur = self.prog[ButtonNum]['MaxCurrent']
+		GPIOnum = self.tempDict[ButtonNum]
 		while (True):
 			I2CLock.acquire()
 			I2CSelect(ButtonNum + 1)
+
 			# Read data from the adc
-			adcReading = bus.read_i2c_block_data(84, 0, 2)
+			#adcReading = bus.read_i2c_block_data(84, 0, 2)
+
 			I2CLock.release()
 
 			# Convert adcReading into integer value
 			readingValue = adcReading[0] + (adcReading[1] << 2)
-			if (adcReading > self.prog[num]['MaxCurrent']):
-				GPIO.output(tempDict[num], 0)
-				if (num < 3):
-					self.GPIOList[num].ChangeDutyCycle(0)
-				else:
-					self.GPIOList[4].hardware_PWM(self.tempDict[num], 0, 0)
-			if Queue.empty():
+			if (adcReading > maxCur):
+				GPIO.output(GPIOnum, 0)
+
+			if not Queue.full():
 				try:
 					Queue.put(readingValue, False)
 				except Exception as e:
