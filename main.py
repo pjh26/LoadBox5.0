@@ -148,7 +148,7 @@ def SPISelect(num):
 		GPIO.output(17, 0)
 
 class HomeScreen(Screen):
-	# Sets the value at the 'del' position in the dict to a value that represents 
+	# Sets the value at the 'del' position in the dict to a value that represents
 	# either the choose program, delete program, or edit program function
 	# param: func: the value (either 0,1,2) that globalData['del'] will be set to
 	def setFunc(self, func):
@@ -160,7 +160,7 @@ class HomeScreen(Screen):
 		s['global'] = globalData
 		s.close()
 
-# ProgButton defines a custom button. For the most part it is identical to a normal 
+# ProgButton defines a custom button. For the most part it is identical to a normal
 # button but it allows us to more easily define a button for each individual program
 class ProgButton(Button):
 	def __init__(self, **kwargs):
@@ -180,7 +180,7 @@ class ProgButton(Button):
 		if not (globalData['del'] == 2):
 			globalData['pos'] = btn
 
-		# The choose program screen is used for both the edit and switches, so we have 
+		# The choose program screen is used for both the edit and switches, so we have
 		# to determine what mode chooseprog screen is currently in
 		if globalData['del'] == 2:
 			scrn = 'chooseprog'
@@ -194,7 +194,7 @@ class ProgButton(Button):
 		return scrn
 
 # ChooseProgScreen defines the screen that allows the user to select which program
-# they are going to test/edit/delete. 
+# they are going to test/edit/delete.
 class ChooseProgScreen(Screen):
 
 	# This function is called any time we enter the choose prog screen. It first clears
@@ -318,7 +318,7 @@ class SwitchScreen(Screen):
 	def getSlideValue(self, slideVal):
 		return str(self.slewRateList[int(slideVal)]) + " V/us"
 
-	# This function is similar to the init, however, it initializes items that 
+	# This function is similar to the init, however, it initializes items that
 	# will be different from program to program.
 	def updateScreen(self):
 		self.btnList = []
