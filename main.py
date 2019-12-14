@@ -15,6 +15,7 @@ from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
 from kivy.clock import mainthread, Clock
 from smbus2 import SMBus
+
 import shelve
 import pigpio
 import atexit
@@ -25,7 +26,7 @@ import math
 import threading
 import random
 import time
-import Queue
+import queue
 
 
 #-------------------------------------------------------------------------------#
@@ -41,24 +42,24 @@ atexit.register(GPIO.cleanup)
 GPIO.setmode(GPIO.BCM)
 
 #Configure kivy
-Config.set('modules','cursor','1')
+#Config.set('modules','cursor','1')
 
 Config.write()
 
 
-#-------------------------------------------------------------------------------#
-#                                                                               #
-#    Outputs are as follows          SPI Select            Slew Rate FB         #
-#                                       CS0 - GPIO22          SR1 - GPIO05      #
-#       Signal 1 - GPIO20               CS1 - GPIO27          SR2 - GPIO06      #
-#       Signal 2 - GPIO23               CS2 - GPIO17                            #
-#       Signal 3 - GPIO24                                                       #
-#       Signal 4 - GPIO18            I2C Select                                 #
-#       Signal 5 - GPIO12               IS0 - GPIO21                            #
-#       Signal 6 - GPIO19               IS1 - GPIO26                            #
-#       Signal 7 - GPIO13               IS2 - GPIO04                            #
-#                                                                               #
-#-------------------------------------------------------------------------------#
+#-------------------------------------------------------------#
+#                                                             #
+#    Outputs are as follows          SPI Select               #
+#                                       CS0 - GPIO22          #
+#       Signal 1 - GPIO20               CS1 - GPIO27          #
+#       Signal 2 - GPIO23               CS2 - GPIO17          #
+#       Signal 3 - GPIO24                                     #
+#       Signal 4 - GPIO18            I2C Select               #
+#       Signal 5 - GPIO12               IS0 - GPIO21          #
+#       Signal 6 - GPIO19               IS1 - GPIO26          #
+#       Signal 7 - GPIO13               IS2 - GPIO04          #
+#                                                             #
+#-------------------------------------------------------------#
 
 
 #initialize software pwm
@@ -410,7 +411,7 @@ class SwitchScreen(Screen):
 		self.I2CLock = threading.Lock()
 		self.CurrentQueueList = []
 		for i in range(7):
-			self.CurrentQueueList.append(Queue.LifoQueue(2))
+			self.CurrentQueueList.append(queue.LifoQueue(2))
 
 		self.curSensor = CurrentSensor.CurrentSensor(buttonData, self.I2CLock, bus, self.CurrentQueueList)
 
@@ -435,13 +436,14 @@ class SwitchScreen(Screen):
 	def cleanUP(self):
 		self.curSensor.stopRead()
 		self.stopPWM()
+		self.currentUpdateEvent.cancel()
 
 	def updateCurrent(self):
 		curValue = 0
 		for i in range(7):
-			if self.btnList[i].state == "down":
+			if self.btnList[i].state == 'down':
 				try:
-					curValue = self.CurrentQueueList[i].get(False)
+					curValue = self.curSensor.getCurrent(i)
 				except:
 					pass
 				if curValue == -1:
@@ -486,7 +488,7 @@ class SwitchScreen(Screen):
 			SPISelect(7)
 		else:
 			SPISelect(0)
-		spi.writebytes(intVal)
+		spi.writebytes([0, intVal])
 		SPISelect(0)
 
 	def loadingPopup(self, open_close):
@@ -538,34 +540,37 @@ class SwitchScreen(Screen):
 		SRData = []
 		AVGData = 0
 		SPISelect(num)
-		for i in range(257):
-			self.updateProgBar(i)
+
+		sum = 0
+		for i in range(100):
+			read = bus.read_i2c_block_data(82, 0, 2)
+			sum += (read[0] << 8) + read[1]
+
+		voltage = ((sum/100) - 53.271) * 0.00905633
+		vchange = (voltage * 0.8939) - (voltage * 0.1443)
+		for i in range(256):
+			#self.updateProgBar(i)
 			spi.writebytes([0,i])
-			successfulReads = 10
-			AVGData = 0
 			Total = 0
-			for j in range(10):
+
+			for j in range(3):
 				# Turn on the output
 				hardPWM.write(GPIOnum, 1)
 				# Micro chip automatically measures the data
-				time.sleep(0.0001)
+				#time.sleep(0.0001)
 				self.I2CLock.acquire()
-				try:
-					adcReading = bus.read_i2c_block_data(80, 0, 2)
-				except:
-					self.I2C_ERROR()
-					successfulReads -= 1
-					adcReading = [0,0]
 
-				self.I2CLock.release()
+				adcReading = bus.read_i2c_block_data(80, 0, 2)
+
 				hardPWM.write(GPIOnum, 0)
-				Total +=  adcReading[1]
-				Total += adcReading[0] << 8
-			if successfulReads > 0:
-				AVGData = Total/successfulReads
-			else:
-				AVGData = 0
-			SRData.append(0.001*float(math.trunc(AVGData*0.00305*1000)))
+				time.sleep(0.001)
+				self.I2CLock.release()
+
+				Total += (adcReading[0] << 8) + adcReading[1]
+
+			microseconds = (0.0451 * (Total/3)) - 0.3279
+			slewRate = vchange / microseconds
+			SRData.append(slewRate)
 
 		SPISelect(0)
 		return SRData

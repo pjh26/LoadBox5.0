@@ -219,25 +219,28 @@ ScreenManagement:
 					pos_hint: {"center_x":.66,"center_y":.5}
 					size_hint: .5,.1
 					step: 1
-					max: 256
+					max: 255
 				Label:
 					pos_hint: {"center_x":.95,"center_y":.5}
 					text: '{}'.format(root.getSlideValue(slide.value))
+
+				Button:
+					text: 'Approximate\nSlew Rate'
+					pos_hint: {"center_x":0.2, "center_y":0.35}
+					size_hint: 0.3, 0.13
+					on_press: root.testSlewRate()
+
 				Button:
 					text: 'Apply\nSlew Rate'
-					pos_hint: {"center_x":.66,"center_y":.35}
-					size_hint: .13,.13
+					pos_hint: {"center_x":0.66,"center_y":.20}
+					size_hint: .3,.13
 					on_press: root.updatePot()
 				Button:
 					text: 'Test\nSlew Rate'
-					pos_hint: {"center_x":.2,"center_y":.35}
-					size_hint: .13,.13
+					pos_hint: {"center_x":0.66,"center_y":.35}
+					size_hint: .3,.13
 					on_press: root.loadingPopup(True)
 					on_release: root.testSlewRate()
-				Label:
-					id: popslewdisplay
-					pos_hint: {"center_x":.2,"center_y":.5}
-					text: "Slew Rate: .7 V/us"
 				Button:
 					text: 'Exit'
 					pos_hint: {"center_x":.1,"center_y":.1}

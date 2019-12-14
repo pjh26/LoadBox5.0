@@ -2,14 +2,15 @@ import RPi.GPIO as GPIO
 import threading
 import pigpio
 import smbus
-import Queue
+import queue
+import random
 
 #set GPIO to BCM numbering scheme. Pin numbering can be found at pinout.xyz
 GPIO.setmode(GPIO.BCM)
 
-GPIO.setup(26, GPIO.OUT)	# IS_0
-GPIO.setup(19, GPIO.OUT)	# IS_1
-GPIO.setup(13, GPIO.OUT)	# IS_2
+GPIO.setup(21, GPIO.OUT)	# IS_0
+GPIO.setup(26, GPIO.OUT)	# IS_1
+GPIO.setup(4, GPIO.OUT) 	# IS_2
 
 
 '''
@@ -39,7 +40,7 @@ class CurrentSensor:
 		self.tempDict = {0:20, 1:23, 2:24, 3:18, 4:12, 5:19, 6:13}
 
 		for i in range(7):
-			self.stopQueueList.append(Queue.Queue(1))
+			self.stopQueueList.append(queue.Queue(1))
 			self.threadData.append(threading.Thread( target = self.read, args = (i, self.I2CLock, self.bus, self.QueueList[i], self.stopQueueList[i])))
 
 
@@ -48,16 +49,16 @@ class CurrentSensor:
 	# seperate thread.
 	def startRead(self, btn = -1):
 		if btn == -1:
-			try:
-				for i in range(7):
-					self.stopQueueList[i].get(False)
+			for i in range(7):
+				try:
 					self.threadData[i].start()
-			except Exception as e:
-				pass
+					self.stopQueueList[i].get(False)
+				except Exception as e:
+					pass
 		else:
 			try:
-				self.stopQueueList[btn].get(False)
 				self.threadData[btn].start()
+				self.stopQueueList[btn].get(False)
 			except Exception as e:
 				pass
 
@@ -82,22 +83,29 @@ class CurrentSensor:
 		maxCur = self.prog[ButtonNum]['MaxCurrent']
 		GPIOnum = self.tempDict[ButtonNum]
 		while (True):
+
 			I2CLock.acquire()
-			I2CSelect(ButtonNum + 1)
+			self.I2CSelect(ButtonNum + 1)
 
 			# Read data from the adc
-			#adcReading = bus.read_i2c_block_data(84, 0, 2)
+			adcReading = bus.read_i2c_block_data(84, 0, 2)
 
 			I2CLock.release()
 
 			# Convert adcReading into integer value
-			readingValue = adcReading[0] + (adcReading[1] << 2)
-			if (adcReading > maxCur):
+			total = 0
+			for i in range(10):
+				total += adcReading[1] + (adcReading[0] << 8)
+
+			current = 0.003*(total/10) - 1.2202
+
+			if (current > float(maxCur)):
 				GPIO.output(GPIOnum, 0)
+
 
 			if not Queue.full():
 				try:
-					Queue.put(readingValue, False)
+					Queue.put(current, False)
 				except Exception as e:
 					pass
 
@@ -108,40 +116,40 @@ class CurrentSensor:
 	# Getter method for the current data
 	def getCurrent(self, ButtonNum):
 		try:
-			return self.currentData[ButtonNum]
+			return '%.1f'%(abs(self.QueueList[ButtonNum].get(False)))
 		except Exception as e:
 			return -1
 
 	def I2CSelect(self, num):
 		if (num == 0):
+			GPIO.output(21, 0)
 			GPIO.output(26, 0)
-			GPIO.output(19, 0)
-			GPIO.output(13, 0)
+			GPIO.output(4, 0)
 		elif (num == 1):
-			GPIO.output(26, 1)
-			GPIO.output(19, 0)
-			GPIO.output(13, 0)
+			GPIO.output(21, 1)
+			GPIO.output(26, 0)
+			GPIO.output(4, 0)
 		elif (num == 2):
-			GPIO.output(26, 0)
-			GPIO.output(19, 1)
-			GPIO.output(13, 0)
+			GPIO.output(21, 0)
+			GPIO.output(26, 1)
+			GPIO.output(4, 0)
 		elif (num == 3):
+			GPIO.output(21, 1)
 			GPIO.output(26, 1)
-			GPIO.output(19, 1)
-			GPIO.output(13, 0)
+			GPIO.output(4, 0)
 		elif (num == 4):
+			GPIO.output(21, 0)
 			GPIO.output(26, 0)
-			GPIO.output(19, 0)
-			GPIO.output(13, 1)
+			GPIO.output(4, 1)
 		elif (num == 5):
-			GPIO.output(26, 1)
-			GPIO.output(19, 0)
-			GPIO.output(13, 1)
-		elif (num == 6):
+			GPIO.output(21, 1)
 			GPIO.output(26, 0)
-			GPIO.output(19, 1)
-			GPIO.output(13, 1)
-		elif (num == 7):
+			GPIO.output(4, 1)
+		elif (num == 6):
+			GPIO.output(21, 0)
 			GPIO.output(26, 1)
-			GPIO.output(19, 1)
-			GPIO.output(13, 1)
+			GPIO.output(4, 1)
+		elif (num == 7):
+			GPIO.output(21, 1)
+			GPIO.output(26, 1)
+			GPIO.output(4, 1)
