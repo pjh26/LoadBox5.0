@@ -585,19 +585,17 @@ class SwitchScreen(Screen):
 
 		desiredTime = vchange/desiredSlewRate
 
-		print("Desired Slew: " + str(desiredSlewRate))
-		print("Desired Time: " + str(desiredTime))
 		# Next, the output is turned on and the slew rate measured. After this, the output is
 		# turned off and the MCU is polled to determined when it is ready for another attempt
 
 		# At maximum, this will happen 8 times to determine where the optimal resistor value is
 
 		# Start at the top
-		minTime = self.getTiming(255, currentButton, zeroCheck = True)
-		print("Min Time: " + str(minTime) + "\n")
+		minTime = self.getTiming(255, currentButton)
+		print("Min Time: " + str(minTime))
 		# And then the bottom
-		maxTime = self.getTiming(0, currentButton, zeroCheck = True)
-		print("Max Time: " + str(maxTime) + "\n")
+		maxTime = self.getTiming(0, currentButton)
+		print("Max Time: " + str(maxTime))
 		if desiredTime < minTime:
 			return 255
 		elif desiredTime > maxTime:
@@ -608,7 +606,7 @@ class SwitchScreen(Screen):
 		approximateTime = float(0)
 		newApproximateTime = float(0)
 
-		timeError = topTime
+		timeError = topTime - botTime
 		newTimeError = float(0)
 
 		botVal = 0
@@ -618,67 +616,32 @@ class SwitchScreen(Screen):
 
 		linearPercentage = float(0)
 
-		finalTime = 0
-		finalVal = 0
-
 		# This approximates
-		print("Beginning Approximation\n")
-		for i in range(10):
+		while True:
 			# Linearize the top and bottom and determine where the desired value is
 			linearPercentage = desiredTime / (topTime + botTime)
 
 			# Take that percentage and determine its equivalent linear location in slide value
-			newApproximateVal = int(botVal + (linearPercentage * (topVal - botVal)))
+			newApproximateVal = int(linearPercentage * (topVal + botVal))
 
 			# Test how close that approximated Value is
-
-			newApproximateTime = self.getTiming(newApproximateVal, currentButton, zeroCheck = True)
-
-			print("TOP: " + str(topVal))
-			print("BOT: " + str(botVal))
-
-			print("Value: " + str(newApproximateVal))
-			print("Time:  " + str(newApproximateTime))
+			newApproximateTime = self.getTiming(approximateVal, currentButton)
 
 			newTimeError = desiredTime - newApproximateTime
-			print("TIME ERROR: " + str(newTimeError) + "\n")
 
-			approximateTime = newApproximateTime
-			approximateVal = newApproximateVal
-			timeError = newTimeError
+			if abs(newTimeError) < abs(timeError):
+				break
+			else:
+				approximateTime = newApproximateTime
+				approximateVal = newApproximateVal
 
-			if abs(desiredTime - approximateTime) < abs(desiredTime - finalTime):
-				finalTime = approximateTime
-				finalVal = approximateVal
-
-			if newTimeError > 0:
+			if newTimeError < 0:
 				topVal = newApproximateVal
-				topTime = newApproximateTime
 			else:
 				botVal = newApproximateVal
-				botTime = newApproximateTime
-#		resistorRange = 128
-#		resistorVal = 128
-#		finalTime = 0
-#		finalVal = 0
 
-#		for i in range(8):
-#			time = self.getTiming(int(resistorVal - 1), currentButton)
-#			print("Time: " + str(time) + "\n")
-#			if abs(desiredTime - time) < abs(desiredTime - finalTime):
-#				finalTime = time
-#				finalVal = resistorVal - 1
-#
-#			resistorRange /= 2
-#
-#			if desiredTime < time:
-#				resistorVal += resistorRange
-#			else:
-#				resistorVal -= resistorRange
+		self.getTiming(approximateVal, currentButton)
 
-		finalTime = self.getTiming(int(finalVal), currentButton)
-		print("\n Desired: " + str(desiredTime))
-		print("Final: " + str(finalTime))
 
 	def pollMCU(self):
 		while True:
@@ -688,7 +651,7 @@ class SwitchScreen(Screen):
 				return
 
 
-	def getTiming(self, resistorValue, button, zeroCheck = False):
+	def getTiming(self, resistorValue, button):
 		tempDict = {1:20, 2:23, 3:24, 4:18, 5:12, 6:19, 7:13}
 		GPIOnum = tempDict[button]
 		total = 0
@@ -698,10 +661,10 @@ class SwitchScreen(Screen):
 		# First write the digital resistor so that the proper slew rate is tested
 		SPISelect(button)
 		spi.writebytes([0, resistorValue])
-		print("Resistor Val: " + str(resistorValue))
+		print(resistorValue)
 		# Turn on the output
 		hardPWM.write(GPIOnum, 1)
-		time.sleep(0.2)
+		time.sleep(0.1)
 		# Micro chip automatically measures the data
 		self.I2CLock.acquire()
 		adcReading = bus.read_i2c_block_data(80, 0, 2)
@@ -710,14 +673,14 @@ class SwitchScreen(Screen):
 		total = (adcReading[0] << 8) + adcReading[1]
 		microseconds = (0.0451 * total) - 0.3279
 
+		print("Total: " + str(total))
+
+		time.sleep(0.1)
+
 		hardPWM.write(GPIOnum, 0)
 
 		SPISelect(0)
 		self.pollMCU()
-
-		if zeroCheck:
-			if total == 0:
-				microseconds = self.getTiming(resistorValue, button, zeroCheck)
 
 		return microseconds
 

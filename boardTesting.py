@@ -67,6 +67,19 @@ def testCurrentMeasurement():
 	print(numsum/100)
 	print(current)
 
+def I2CBus():
+	while True:
+		read = bus.read_i2c_block_data(80, 0, 2)
+		time.sleep(0.2)
+
+		total = (read[1] << 8) + read[0]
+		print(total)
+		if total == 0:
+			print("ERROR!")
+
+
+
+
 def testSlewRateMeasurement(num):
 	numsum = 0
 	numlist = []
@@ -123,13 +136,13 @@ def testSlewRateMeasurement(num):
 
 while True:
 	print("Press enter to measure")
-	input = raw_input()
+	input = input()
 	if (input == "q"):
 		break
 	else:
 		#testVccMeasurement()
 		#testCurrentMeasurement()
-		testSlewRateMeasurement(input)
-
+		#testSlewRateMeasurement(input)
+		I2CBus()
 
 GPIO.cleanup()

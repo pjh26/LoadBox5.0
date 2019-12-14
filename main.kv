@@ -250,7 +250,7 @@ ScreenManagement:
 					text: 'Test\nSlew Rate'
 					pos_hint: {"center_x":0.66,"center_y":.25}
 					size_hint: .3,.13
-					on_press: root.loadingPopup(True)
+#					on_press: root.loadingPopup(True)
 					on_release: root.testSlewRate()
 				Button:
 					text: 'Exit'
@@ -266,7 +266,7 @@ ScreenManagement:
 			pos_hint: {"center_x":.12, "center_y":.3}
 			on_press:
 				popup0.open()
-				root.stopPWM()
+				root.cleanUP()
 			size_hint: 0.18,0.12
 			text: "Display/Adjust\nSlew Rate:"
 		Label:
