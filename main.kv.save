@@ -163,92 +163,87 @@ ScreenManagement:
 					text: root.ids.btn0.text
 					pos_hint: root.ids.btn0.pos_hint
 					size_hint: root.ids.btn0.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn1
 					text: root.ids.btn1.text
 					pos_hint: root.ids.btn1.pos_hint
 					size_hint: root.ids.btn1.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release:  root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release:  root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn2
 					text: root.ids.btn2.text
 					pos_hint: root.ids.btn2.pos_hint
 					size_hint: root.ids.btn2.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn3
 					text: root.ids.btn3.text
 					pos_hint: root.ids.btn3.pos_hint
 					size_hint: root.ids.btn3.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn4
 					text: root.ids.btn4.text
 					pos_hint: root.ids.btn4.pos_hint
 					size_hint: root.ids.btn4.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn5
 					text: root.ids.btn5.text
 					pos_hint: root.ids.btn5.pos_hint
 					size_hint: root.ids.btn5.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn6
 					text: root.ids.btn6.text
 					pos_hint: root.ids.btn6.pos_hint
 					size_hint: root.ids.btn6.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					on_press: root.loadingPopup(True)
+					on_release: root.testSlewRate()
 					group : 'g0'
-
-				Label:
-					pos_hint:{"center_x":0.2, "center_y":0.5}
-					text: 'Enter Desired Slew Rate'
-
-				TextInput:
-					id: desiredSlewRate
-					pos_hint: {"center_x":.2,"center_y":.40}
-					size_hint: 0.3, 0.075
 				Slider:
 					id: slide
-					pos_hint: {"center_x":.66,"center_y":.40}
+					pos_hint: {"center_x":.66,"center_y":.5}
 					size_hint: .5,.1
 					step: 1
 					max: 255
 				Label:
-					id: slewRateLbl
-					pos_hint: {"center_x":.95,"center_y":.40}
-#					text: '{}'.format(root.getSlideValue(slide.value))
-					text: 'Slew Rate'
+					pos_hint: {"center_x":.95,"center_y":.5}
+					text: '{}'.format(root.getSlideValue(slide.value))
+
+
+				TextInput:
+					id: desiredSlewRate
+					pos_hint: {"center_x":0.2, "center_y":0.5}
+					size_hint: 0.3, 0.13
 
 				Button:
 					text: 'Approximate\nSlew Rate'
-					pos_hint: {"center_x":0.2, "center_y":0.30}
-					size_hint: 0.3, 0.075
-					on_press: root.approximateSlewRate()
+					pos_hint: {"center_x":0.2, "center_y":0.35}
+					size_hint: 0.3, 0.13
+					on_press: root.testSlewRate()
 
 				Button:
 					text: 'Apply\nSlew Rate'
-					pos_hint: {"center_x":0.66,"center_y":.1}
+					pos_hint: {"center_x":0.66,"center_y":.20}
 					size_hint: .3,.13
-					on_press: root.applySlewRate()
+					on_press: root.updatePot()
 				Button:
 					text: 'Test\nSlew Rate'
-					pos_hint: {"center_x":0.66,"center_y":.25}
+					pos_hint: {"center_x":0.66,"center_y":.35}
 					size_hint: .3,.13
 					on_press: root.loadingPopup(True)
 					on_release: root.testSlewRate()

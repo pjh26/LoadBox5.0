@@ -42,10 +42,7 @@ atexit.register(GPIO.cleanup)
 GPIO.setmode(GPIO.BCM)
 
 #Configure kivy
-#Config.set('modules','cursor','1')
-
-Config.write()
-
+Config.set('graphics','fullscreen','auto')
 
 #-------------------------------------------------------------#
 #                                                             #
@@ -470,24 +467,38 @@ class SwitchScreen(Screen):
 		return btnInfo
 
 	#send new value to potentiometer via SPI bus
-	def updatePot(self):
+	def applySlewRate(self):
 		intVal = int(self.ids.slide.value)
+		currentButton = 0
 		if self.ids.togbtn0.state == "down":
-			SPISelect(1)
+			currentButton = 1
 		elif self.ids.togbtn1.state == "down":
-			SPISelect(2)
+			currentButton = 2
 		elif self.ids.togbtn2.state == "down":
-			SPISelect(3)
+			currentButton = 3
 		elif self.ids.togbtn3.state == "down":
-			SPISelect(4)
+			currentButton = 4
 		elif self.ids.togbtn4.state == "down":
-			SPISelect(5)
+			currentButton = 5
 		elif self.ids.togbtn5.state == "down":
-			SPISelect(6)
+			currentButton = 6
 		elif self.ids.togbtn6.state == "down":
-			SPISelect(7)
+			currentButton = 7
 		else:
-			SPISelect(0)
+			currentButton = 0
+
+		s = shelve.open('TestBoxData.db')
+		globalData = s['global']
+		progData = s['data']
+
+		pos = globalData['pos']
+
+		progData[pos]['buttons'][currentButton]['SR'] = intVal
+
+		s['data'] = progData
+		s.close()
+
+		SPISelect(currentButton)
 		spi.writebytes([0, intVal])
 		SPISelect(0)
 
@@ -507,27 +518,185 @@ class SwitchScreen(Screen):
 
 	#determine and display slew rate on selected channel
 	def testSlewRate(self):
-		SRList = []
+		intVal = int(self.ids.slide.value)
+		currentButton = 0
+
 		if self.ids.togbtn0.state == "down":
-			SRList = self.getSlewRateSpectrum(1)
+			currentButton = 1
 		elif self.ids.togbtn1.state == "down":
-			SRList = self.getSlewRateSpectrum(2)
+			currentButton = 2
 		elif self.ids.togbtn2.state == "down":
-			SRList = self.getSlewRateSpectrum(3)
+			currentButton = 3
 		elif self.ids.togbtn3.state == "down":
-			SRList = self.getSlewRateSpectrum(4)
+			currentButton = 4
 		elif self.ids.togbtn4.state == "down":
-			SRList = self.getSlewRateSpectrum(5)
+			currentButton = 5
 		elif self.ids.togbtn5.state == "down":
-			SRList = self.getSlewRateSpectrum(6)
+			currentButton = 6
 		elif self.ids.togbtn6.state == "down":
-			SRList = self.getSlewRateSpectrum(7)
+			currentButton = 7
 		else:
-			for i in range(257):
-				SRList.append(0)
-		self.slewRateList = SRList
+			return 0
+
+		SPISelect(currentButton)
+
+		voltage = self.getVoltage(50)
+
+		# This equation is based off the resistor values used on the board
+		vchange = (voltage * 0.8939) - (voltage * 0.1443)
+
+		microseconds = self.getTiming(intVal, currentButton)
+
+		slewRate = vchange / microseconds
+
+		self.ids.slewRateLbl.text = str(slewRate + " V/us")
+
+		SPISelect(0)
 		self.stopPWM()
 		self.loadingPopup(False)
+
+	# This function tests the top then bottom then estimates the approximate slew rate until it reaches its goal
+	def approximateSlewRate(self):
+		currentButton = 0
+
+		if (self.ids.togbtn0.state == "down"):
+			currentButton = 1
+		elif (self.ids.togbtn1.state == "down"):
+			currentButton = 2
+		elif (self.ids.togbtn2.state == "down"):
+			currentButton = 3
+		elif (self.ids.togbtn3.state == "down"):
+			currentButton = 4
+		elif (self.ids.togbtn4.state == "down"):
+			currentButton = 5
+		elif (self.ids.togbtn5.state == "down"):
+			currentButton = 6
+		elif (self.ids.togbtn6.state == "down"):
+			currentButton = 7
+		else:
+			return 0
+
+		desiredSlewRate = float(self.ids.desiredSlewRate.text)
+
+		voltage = getVoltage(50)
+		# This equation is based off the resistor values used on the board
+		vchange = (voltage * 0.8939) - (voltage * 0.1443)
+
+		desiredTime = vchange/desiredSlewRate
+
+		# Next, the output is turned on and the slew rate measured. After this, the output is
+		# turned off and the MCU is polled to determined when it is ready for another attempt
+
+		# At maximum, this will happen 8 times to determine where the optimal resistor value is
+
+		# Start at the top
+		minTime = self.getTiming(255, currentButton)
+
+		# And then the bottom
+		maxTime = self.getTiming(0, currentButton)
+
+		if desiredTime < minTime:
+			return 255
+		elif desiredTime > maxTime:
+			return 0
+
+		botTime = minTime
+		topTime = maxTime
+		approximateTime = float(0)
+		newApproximateTime = float(0)
+
+		timeError = topTime - botTime
+		newTimeError = float(0)
+
+		botVal = 0
+		topVal = 255
+		approximateVal = 0
+		newApproximateVal = 0
+
+		linearPercentage = float(0)
+
+		# This approximates
+		while True:
+			# Linearize the top and bottom and determine where the desired value is
+			linearPercentage = desiredTime / (topTime + botTime)
+
+			# Take that percentage and determine its equivalent linear location in slide value
+			newApproximateVal = int(linearPercentage * (topVal + botVal))
+
+			# Test how close that approximated Value is
+			newApproximateTime = self.getTiming(approximateVal, currentButton)
+
+			newTimeError = desiredTime - newApproximateTime
+
+			if newTimeError < timeError:
+				break
+			else:
+				approximateTime = newApproximateTime
+				approximateVal = newApproximateVal
+
+			if newTimeError < 0:
+				topVal = newApproximateVal
+			else:
+				botVal = newApproximateVal
+
+		self.getTiming(approximateVal, currentButton)
+
+
+	def pollMCU(self):
+		while True:
+			adcReading = bus.read_i2c_block_data(80, 0, 2)
+			total = (adcReading[0] << 8) + adcReading[1]
+
+			if total == 0:
+				return
+
+
+	def getTiming(self, resistorValue, button):
+		tempDict = {1:20, 2:23, 3:24, 4:18, 5:12, 6:19, 7:13}
+		GPIOnum = tempDict[button]
+		total = 0
+
+		self.ids.slide.value = resistorValue
+
+		# First write the digital resistor so that the proper slew rate is tested
+		spi.writebytes([0, resistorValue])
+
+		# Turn on the output
+		hardPWM.write(GPIOnum, 1)
+
+		# Micro chip automatically measures the data
+		self.I2CLock.acquire()
+		adcReading = bus.read_i2c_block_data(80, 0, 2)
+		self.I2CLock.release()
+
+		total = (adcReading[0] << 8) + adcReading[1]
+		microseconds = (0.0451 * total) - 0.3279
+
+		time.sleep(0.1)
+
+		hardPWM.write(GPIOnum, 0)
+
+		self.pollMCU()
+
+		return microseconds
+
+	# This function returns the voltage level of the outputs
+	def getVoltage(self, iterations):
+                #
+                # This next section determines the voltage
+                #
+
+                voltageSum = 0
+                for i in range(iterations):
+                        read = bus.read_i2c_block_data(82, 0, 2)
+                        voltageSum += (read[0] << 8) + read[1]
+
+                # This equation is based off the board testing documented in onenote
+                voltage = ((voltageSum/iterations) - 53.271) * 0.00905633
+
+                return voltage
+
+
 
 	# This function tests every single potentiometer possibility to give the tester an idea of
 	# what slew rates they will be able to us
