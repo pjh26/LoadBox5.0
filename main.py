@@ -207,7 +207,7 @@ class ChooseProgScreen(Screen):
 		while True:
 			btnText = self.getBtnTxt(i)
 			if btnText != "error":
-				self.newButton = ProgButton(id = str(i), text = btnText, font_size=50, size_hint_y=0.15)
+				self.newButton = ProgButton(id = str(i), text = btnText, font_size=50, height = 200)
 				self.newButton.bind(on_press = self.popOpen)
 				self.ids.chooseProgGrid.add_widget(self.newButton)
 			else:
