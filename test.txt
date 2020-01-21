@@ -1,0 +1,7 @@
+
+[input]
+mouse = mouse
+%(name)s = probesysfs,provider=hidinput
+
+[graphics]
+show_cursor = 1
