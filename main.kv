@@ -278,6 +278,20 @@ ScreenManagement:
 						root.stopPWM()
 						popup0.dismiss()
 
+				Button:
+					id: decrease
+					text '<'
+					font_size: 100
+					pos_hint: {"center_x":0.415, "center_y":0.1}
+					size_hint: 0.13, 0.13
+
+				Button:
+					id: increase
+					text '>'
+					font_size: 100
+					pos_hint: {"center_x":0.885, "center_y":0.1}
+					size_hint: 0.13, 0.13
+
 		Button:
 			id: slewtime
 			pos_hint: {"center_x":.12, "center_y":.3}
