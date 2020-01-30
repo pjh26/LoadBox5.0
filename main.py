@@ -728,51 +728,6 @@ class SwitchScreen(Screen):
         if value <= 255:
             self.ids.slide.value = value
 
-    # # This function tests every single potentiometer possibility to give the tester an idea of
-    # # what slew rates they will be able to us
-    # def getSlewRateSpectrum(self, num):
-
-    #   SPISelect(num)
-    #   tempDict = {1:20, 2:23, 3:24, 4:18, 5:12, 6:19, 7:13}
-    #   GPIOnum = tempDict[num]
-    #   self.updateProgBar(0)
-    #   SRData = []
-    #   AVGData = 0
-    #   SPISelect(num)
-
-    #   sum = 0
-    #   for i in range(100):
-    #       read = bus.read_i2c_block_data(82, 0, 2)
-    #       sum += (read[0] << 8) + read[1]
-
-    #   voltage = ((sum/100) - 53.271) * 0.00905633
-    #   vchange = (voltage * 0.8939) - (voltage * 0.1443)
-    #   for i in range(256):
-    #       #self.updateProgBar(i)
-    #       spi.writebytes([0,i])
-    #       Total = 0
-
-    #       for j in range(3):
-    #           # Turn on the output
-    #           hardPWM.write(GPIOnum, 1)
-    #           # Micro chip automatically measures the data
-    #           #time.sleep(0.0001)
-    #           self.I2CLock.acquire()
-
-    #           adcReading = bus.read_i2c_block_data(80, 0, 2)
-
-    #           hardPWM.write(GPIOnum, 0)
-    #           time.sleep(0.001)
-    #           self.I2CLock.release()
-
-    #           Total += (adcReading[0] << 8) + adcReading[1]
-
-    #       microseconds = (0.0451 * (Total/3)) - 0.3279
-    #       slewRate = vchange / microseconds
-    #       SRData.append(slewRate)
-
-    #   SPISelect(0)
-    #   return SRData
 
     #outputs software pwm signals on raspberry pi when the button is pressed
     def btnOut(self, num):

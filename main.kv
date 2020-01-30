@@ -505,19 +505,19 @@ ScreenManagement:
 			id: entry
 			text: root.updateText()
 			hint_text: "Program Name"
-			font_size: 16
+			font_size: 50
 			multiline: False
 			size_hint: .2, .07
 			pos_hint: {"center_x":.55, "center_y":.5}
 		Label:
 			text: "Enter Program Title:"
 			pos_hint: {"center_x":.25, "center_y":.5}
-			font_size: 25
+			font_size: 50
 		Button:
 			text: "Cancel"
 			on_release: app.root.current = "home"
 			color: 1,1,1,1
-			font_size: 25
+			font_size: 50
 			size_hint: 0.15,0.15
 			pos_hint: {"center_x":.1, "center_y":.1}
 		Button:
@@ -525,7 +525,7 @@ ScreenManagement:
 			on_press: root.commitNewProgTitle()
 			on_release: app.root.current = "editprog"
 			color: 1,1,1,1
-			font_size: 25
+			font_size: 50
 			size_hint: 0.15,0.15
 			pos_hint: {"center_x":.9, "center_y":.1}
 
