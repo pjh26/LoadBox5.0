@@ -673,7 +673,7 @@ class SwitchScreen(Screen):
 		# First write the digital resistor so that the proper slew rate is tested
 		SPISelect(button)
 		spi.writebytes([0, resistorValue])
-		print("Resistor Val: " + str(resistorValue))
+		#print("Resistor Val: " + str(resistorValue))
 		# Turn on the output
 		hardPWM.write(GPIOnum, 1)
 		time.sleep(0.2)
@@ -695,7 +695,7 @@ class SwitchScreen(Screen):
 				microseconds = self.getTiming(resistorValue, button, zeroCheck)
 
 		if vchange != 0:
-			slewRate = round(microseconds/vchange,2)
+			slewRate = round(vchange/microseconds,2)
 			self.ids.slewRateLbl.text = (str(slewRate) + " V/us")
 
 		return microseconds
