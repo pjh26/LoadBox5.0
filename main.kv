@@ -163,7 +163,7 @@ ScreenManagement:
 				ToggleButton:
 					id: togbtn0
 					text: root.ids.btn0.text
-					font_size = 50
+					font_size: 50
 					pos_hint: root.ids.btn0.pos_hint
 					size_hint: root.ids.btn0.size_hint
 #					on_press: root.loadingPopup(True)
@@ -172,7 +172,7 @@ ScreenManagement:
 				ToggleButton:
 					id: togbtn1
 					text: root.ids.btn1.text
-					font_size = 50
+					font_size: 50
 					pos_hint: root.ids.btn1.pos_hint
 					size_hint: root.ids.btn1.size_hint
 #					on_press: root.loadingPopup(True)
@@ -181,7 +181,7 @@ ScreenManagement:
 				ToggleButton:
 					id: togbtn2
 					text: root.ids.btn2.text
-					font_size = 50
+					font_size: 50
 					pos_hint: root.ids.btn2.pos_hint
 					size_hint: root.ids.btn2.size_hint
 #					on_press: root.loadingPopup(True)
@@ -190,7 +190,7 @@ ScreenManagement:
 				ToggleButton:
 					id: togbtn3
 					text: root.ids.btn3.text
-					font_size = 50
+					font_size: 50
 					pos_hint: root.ids.btn3.pos_hint
 					size_hint: root.ids.btn3.size_hint
 #					on_press: root.loadingPopup(True)
@@ -199,7 +199,7 @@ ScreenManagement:
 				ToggleButton:
 					id: togbtn4
 					text: root.ids.btn4.text
-					font_size = 50
+					font_size: 50
 					pos_hint: root.ids.btn4.pos_hint
 					size_hint: root.ids.btn4.size_hint
 #					on_press: root.loadingPopup(True)
@@ -208,7 +208,7 @@ ScreenManagement:
 				ToggleButton:
 					id: togbtn5
 					text: root.ids.btn5.text
-					font_size = 50
+					font_size: 50
 					pos_hint: root.ids.btn5.pos_hint
 					size_hint: root.ids.btn5.size_hint
 #					on_press: root.loadingPopup(True)
@@ -217,7 +217,7 @@ ScreenManagement:
 				ToggleButton:
 					id: togbtn6
 					text: root.ids.btn6.text
-					font_size = 50
+					font_size: 50
 					pos_hint: root.ids.btn6.pos_hint
 					size_hint: root.ids.btn6.size_hint
 #					on_press: root.loadingPopup(True)
@@ -227,11 +227,11 @@ ScreenManagement:
 				Label:
 					pos_hint:{"center_x":0.2, "center_y":0.5}
 					text: 'Enter Desired Slew Rate'
-					font_size = 50
+					font_size: 50
 
 				TextInput:
 					id: desiredSlewRate
-					font_size = 50
+					font_size: 50
 					pos_hint: {"center_x":.2,"center_y":.40}
 					size_hint: 0.3, 0.075
 				Slider:
@@ -242,34 +242,34 @@ ScreenManagement:
 					max: 255
 				Label:
 					id: slewRateLbl
-					font_size = 50
+					font_size: 50
 					pos_hint: {"center_x":.95,"center_y":.40}
 #					text: '{}'.format(root.getSlideValue(slide.value))
 					text: 'Slew Rate'
 
 				Button:
 					text: 'Approximate\nSlew Rate'
-					font_size = 50
+					font_size: 50
 					pos_hint: {"center_x":0.2, "center_y":0.30}
 					size_hint: 0.3, 0.075
 					on_press: root.approximateSlewRate()
 
 				Button:
 					text: 'Apply\nSlew Rate'
-					font_size = 50
+					font_size: 50
 					pos_hint: {"center_x":0.66,"center_y":.1}
 					size_hint: .3,.13
 					on_press: root.applySlewRate()
 				Button:
 					text: 'Test\nSlew Rate'
-					font_size = 50
+					font_size: 50
 					pos_hint: {"center_x":0.66,"center_y":.25}
 					size_hint: .3,.13
 #					on_press: root.loadingPopup(True)
 					on_release: root.testSlewRate()
 				Button:
 					text: 'Exit'
-					font_size = 50
+					font_size: 50
 					pos_hint: {"center_x":.1,"center_y":.1}
 					size_hint: .15,.15
 					on_release:
