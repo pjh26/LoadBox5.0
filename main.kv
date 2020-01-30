@@ -156,6 +156,7 @@ ScreenManagement:
 			id: popup0
 			size_hint: 1,1
 			title: "Select Channel to Test/Adjust"
+			font_size: 50
 			on_parent:
 				if self.parent == bl: self.parent.remove_widget(self)
 
@@ -283,7 +284,7 @@ ScreenManagement:
 			on_press:
 				popup0.open()
 				root.cleanUP()
-			size_hint: 0.18,0.12
+			size_hint: 0.20,0.14
 			text: "Display/Adjust\nSlew Rate:"
 			font_size: 50
 
@@ -417,7 +418,6 @@ ScreenManagement:
 			on_press: root.stopPWM()
 			on_release: app.root.current = "chooseprog"
 			color: 1,1,1,1
-			font_size: 25
 			size_hint: 0.15,0.15
 			pos_hint: {"center_x":.1, "center_y":.1}
 		ToggleButton:
@@ -474,7 +474,6 @@ ScreenManagement:
 			id: switchtitle
 			font_size: 50
 			pos_hint: {"center_x":.5, "center_y":.1}
-			font_size: 25
 
 <NewProgScreen>:
 	name: "newprog"

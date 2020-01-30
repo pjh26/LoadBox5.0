@@ -312,10 +312,6 @@ class SwitchScreen(Screen):
 		self.GPIOList.append(p2)
 		self.GPIOList.append(hardPWM)
 
-	# This function gives the slider the correct slew rate value to display
-	def getSlideValue(self, slideVal):
-		return str(self.slewRateList[int(slideVal)]) + " V/us"
-
 	# This function is similar to the init, however, it initializes items that
 	# will be different from program to program.
 	def updateScreen(self):
@@ -538,21 +534,17 @@ class SwitchScreen(Screen):
 		else:
 			return 0
 
-		SPISelect(currentButton)
 
 		voltage = self.getVoltage(50)
 
 		# This equation is based off the resistor values used on the board
 		vchange = (voltage * 0.8939) - (voltage * 0.1443)
 
-		microseconds = self.getTiming(intVal, currentButton)
+		microseconds = self.getTiming(intVal, currentButton, zeroCheck = True, vchange = vchange)
 
-		print("Microseconds: " + str(microseconds))
+		#print("Microseconds: " + str(microseconds))
 		slewRate = vchange / microseconds
 
-		self.ids.slewRateLbl.text = (str(slewRate) + " V/us")
-
-		SPISelect(0)
 		self.stopPWM()
 		self.loadingPopup(False)
 
@@ -585,8 +577,8 @@ class SwitchScreen(Screen):
 
 		desiredTime = vchange/desiredSlewRate
 
-		print("Desired Slew: " + str(desiredSlewRate))
-		print("Desired Time: " + str(desiredTime))
+		#print("Desired Slew: " + str(desiredSlewRate))
+		#print("Desired Time: " + str(desiredTime))
 		# Next, the output is turned on and the slew rate measured. After this, the output is
 		# turned off and the MCU is polled to determined when it is ready for another attempt
 
@@ -594,10 +586,10 @@ class SwitchScreen(Screen):
 
 		# Start at the top
 		minTime = self.getTiming(255, currentButton, zeroCheck = True)
-		print("Min Time: " + str(minTime) + "\n")
+		#print("Min Time: " + str(minTime) + "\n")
 		# And then the bottom
 		maxTime = self.getTiming(0, currentButton, zeroCheck = True)
-		print("Max Time: " + str(maxTime) + "\n")
+		#print("Max Time: " + str(maxTime) + "\n")
 		if desiredTime < minTime:
 			return 255
 		elif desiredTime > maxTime:
@@ -622,7 +614,7 @@ class SwitchScreen(Screen):
 		finalVal = 0
 
 		# This approximates
-		print("Beginning Approximation\n")
+		#print("Beginning Approximation\n")
 		for i in range(10):
 			# Linearize the top and bottom and determine where the desired value is
 			linearPercentage = desiredTime / (topTime + botTime)
@@ -632,16 +624,16 @@ class SwitchScreen(Screen):
 
 			# Test how close that approximated Value is
 
-			newApproximateTime = self.getTiming(newApproximateVal, currentButton, zeroCheck = True)
+			newApproximateTime = self.getTiming(newApproximateVal, currentButton, zeroCheck = True, vchange = vchange)
 
-			print("TOP: " + str(topVal))
-			print("BOT: " + str(botVal))
+			#print("TOP: " + str(topVal))
+			#print("BOT: " + str(botVal))
 
-			print("Value: " + str(newApproximateVal))
-			print("Time:  " + str(newApproximateTime))
+			#print("Value: " + str(newApproximateVal))
+			#print("Time:  " + str(newApproximateTime))
 
 			newTimeError = desiredTime - newApproximateTime
-			print("TIME ERROR: " + str(newTimeError) + "\n")
+			#print("TIME ERROR: " + str(newTimeError) + "\n")
 
 			approximateTime = newApproximateTime
 			approximateVal = newApproximateVal
@@ -657,28 +649,11 @@ class SwitchScreen(Screen):
 			else:
 				botVal = newApproximateVal
 				botTime = newApproximateTime
-#		resistorRange = 128
-#		resistorVal = 128
-#		finalTime = 0
-#		finalVal = 0
 
-#		for i in range(8):
-#			time = self.getTiming(int(resistorVal - 1), currentButton)
-#			print("Time: " + str(time) + "\n")
-#			if abs(desiredTime - time) < abs(desiredTime - finalTime):
-#				finalTime = time
-#				finalVal = resistorVal - 1
-#
-#			resistorRange /= 2
-#
-#			if desiredTime < time:
-#				resistorVal += resistorRange
-#			else:
-#				resistorVal -= resistorRange
+		finalTime = self.getTiming(int(finalVal), currentButton, zeroCheck = True, vchange = vchange)
 
-		finalTime = self.getTiming(int(finalVal), currentButton)
-		print("\n Desired: " + str(desiredTime))
-		print("Final: " + str(finalTime))
+		#print("\n Desired: " + str(desiredTime))
+		#print("Final: " + str(finalTime))
 
 	def pollMCU(self):
 		while True:
@@ -688,7 +663,7 @@ class SwitchScreen(Screen):
 				return
 
 
-	def getTiming(self, resistorValue, button, zeroCheck = False):
+	def getTiming(self, resistorValue, button, zeroCheck = False, vchange = 0):
 		tempDict = {1:20, 2:23, 3:24, 4:18, 5:12, 6:19, 7:13}
 		GPIOnum = tempDict[button]
 		total = 0
@@ -718,6 +693,10 @@ class SwitchScreen(Screen):
 		if zeroCheck:
 			if total == 0:
 				microseconds = self.getTiming(resistorValue, button, zeroCheck)
+
+		if vchange != 0:
+			slewRate = round(microseconds/vchange,2)
+			self.ids.slewRateLbl.text = (str(slewRate) + " V/us")
 
 		return microseconds
 
