@@ -284,6 +284,8 @@ ScreenManagement:
 					font_size: 100
 					pos_hint: {"center_x":0.435, "center_y":0.25}
 					size_hint: 0.13, 0.13
+					on_release:
+						root.decreaseSlider()
 
 				Button:
 					id: increase
@@ -291,7 +293,8 @@ ScreenManagement:
 					font_size: 100
 					pos_hint: {"center_x":0.885, "center_y":0.25}
 					size_hint: 0.13, 0.13
-
+					on_release:
+						root.increaseSlider()
 		Button:
 			id: slewtime
 			pos_hint: {"center_x":.12, "center_y":.3}
