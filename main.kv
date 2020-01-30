@@ -236,8 +236,8 @@ ScreenManagement:
 					size_hint: 0.3, 0.075
 				Slider:
 					id: slide
-					pos_hint: {"center_x":.66,"center_y":.40}
-					size_hint: .5,.1
+					pos_hint: {"center_x":.645,"center_y":.40}
+					size_hint: .45,.1
 					step: 1
 					max: 255
 				Label:
@@ -245,7 +245,7 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: {"center_x":.95,"center_y":.40}
 #					text: '{}'.format(root.getSlideValue(slide.value))
-					text: 'Slew Rate'
+					text: '0 V/us'
 
 				Button:
 					text: 'Approximate\nSlew Rate'
@@ -285,103 +285,135 @@ ScreenManagement:
 				root.cleanUP()
 			size_hint: 0.18,0.12
 			text: "Display/Adjust\nSlew Rate:"
+			font_size = 50
+
 		Label:
 			id: slewdisplay
+			font_size = 50
 			pos_hint: {"center_x":.65, "center_y":.25}
 
 		Label:
 			id: btn0cur
+			font_size = 50
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.4}
 			halign: 'right'
 		Label:
 			id: btn0func
+			font_size = 50
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.55}
 		Label:
 			id: btn0frq
+			font_size = 50
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.5}
 		Label:
 			id: btn0dc
+			font_size = 50
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.45}
 		Label:
 			id: btn1cur
+			font_size = 50
 			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.4}
 			halign: 'right'
 		Label:
 			id: btn1func
+			font_size = 50
 			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.55}
 		Label:
 			id: btn1frq
+			font_size = 50
 			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.5}
 		Label:
 			id: btn1dc
+			font_size = 50
 			pos_hint: {"center_x":2*(0.3/8)+.15, "center_y":.45}
 		Label:
 			id: btn2cur
+			font_size = 50
 			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.4}
 			halign: 'right'
 		Label:
 			id: btn2func
+			font_size = 50
 			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.55}
 		Label:
 			id: btn2frq
+			font_size = 50
 			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.5}
 		Label:
 			id: btn2dc
+			font_size = 50
 			pos_hint: {"center_x":3*(0.3/8)+.25, "center_y":.45}
 		Label:
 			id: btn3cur
+			font_size = 50
 			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.4}
 			halign: 'right'
 		Label:
 			id: btn3func
+			font_size = 50
 			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.55}
 		Label:
 			id: btn3frq
+			font_size = 50
 			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.5}
 		Label:
 			id: btn3dc
+			font_size = 50
 			pos_hint: {"center_x":4*(0.3/8)+.35, "center_y":.45}
 		Label:
 			id: btn4cur
+			font_size = 50
 			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.4}
 			halign: 'right'
 		Label:
 			id: btn4func
+			font_size = 50
 			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.55}
 		Label:
 			id: btn4frq
+			font_size = 50
 			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.5}
 		Label:
 			id: btn4dc
+			font_size = 50
 			pos_hint: {"center_x":5*(0.3/8)+.45, "center_y":.45}
 		Label:
 			id: btn5cur
+			font_size = 50
 			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.4}
 			halign: 'right'
 		Label:
 			id: btn5func
+			font_size = 50
 			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.55}
 		Label:
 			id: btn5frq
+			font_size = 50
 			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.5}
 		Label:
 			id: btn5dc
+			font_size = 50
 			pos_hint: {"center_x":6*(0.3/8)+.55, "center_y":.45}
 		Label:
 			id: btn6cur
+			font_size = 50
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.4}
 			halign: 'right'
 		Label:
 			id: btn6func
+			font_size = 50
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.55}
 		Label:
 			id: btn6frq
+			font_size = 50
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.5}
 		Label:
 			id: btn6dc
+			font_size = 50
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.45}
 		Button:
 			text: "Back"
+			font_size = 50
 			on_press: root.stopPWM()
 			on_release: app.root.current = "chooseprog"
 			color: 1,1,1,1
@@ -392,54 +424,55 @@ ScreenManagement:
 			id: btn0
 			on_press: root.btnOut(0)
 			color: 1,1,1,1
-			font_size: 25
+			font_size = 50
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(0.3/8)+.05, "center_y":.78}
 		ToggleButton:
 			id: btn1
 			on_press: root.btnOut(1)
 			color: 1,1,1,1
-			font_size: 25
+			font_size = 50
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(0.3/4)+.15, "center_y":.78}
 		ToggleButton:
 			id: btn2
 			on_press: root.btnOut(2)
 			color: 1,1,1,1
-			font_size: 25
+			font_size = 50
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(3*(0.3/8))+.25, "center_y":.78}
 		ToggleButton:
 			id: btn3
 			on_press: root.btnOut(3)
 			color: 1,1,1,1
-			font_size: 25
+			font_size = 50
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(4*(0.3/8))+.35, "center_y":.78}
 		ToggleButton:
 			id: btn4
 			on_press: root.btnOut(4)
 			color: 1,1,1,1
-			font_size: 25
+			font_size = 50
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(5*(0.3/8))+.45, "center_y":.78}
 		ToggleButton:
 			id: btn5
 			on_press: root.btnOut(5)
 			color: 1,1,1,1
-			font_size: 25
+			font_size = 50
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(6*(0.3/8))+.55, "center_y":.78}
 		ToggleButton:
 			id: btn6
 			on_press: root.btnOut(6)
 			color: 1,1,1,1
-			font_size: 25
+			font_size = 50
 			size_hint: 0.13,0.4
 			pos_hint: {"center_x":(7*(0.3/8))+.65, "center_y":.78}
 
 		Label:
 			id: switchtitle
+			font_size = 50
 			pos_hint: {"center_x":.5, "center_y":.1}
 			font_size: 25
 
