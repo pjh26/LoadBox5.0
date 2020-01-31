@@ -161,14 +161,15 @@ ScreenManagement:
 				if self.parent == bl: self.parent.remove_widget(self)
 
 			FloatLayout:
+
 				ToggleButton:
 					id: togbtn0
 					text: root.ids.btn0.text
 					font_size: 50
 					pos_hint: root.ids.btn0.pos_hint
 					size_hint: root.ids.btn0.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					#on_press: root.loadingPopup(True)
+					#on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn1
@@ -176,8 +177,8 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: root.ids.btn1.pos_hint
 					size_hint: root.ids.btn1.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release:  root.testSlewRate()
+					#on_press: root.loadingPopup(True)
+					#on_release:  root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn2
@@ -185,8 +186,8 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: root.ids.btn2.pos_hint
 					size_hint: root.ids.btn2.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					#on_press: root.loadingPopup(True)
+					#on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn3
@@ -194,8 +195,8 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: root.ids.btn3.pos_hint
 					size_hint: root.ids.btn3.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					#on_press: root.loadingPopup(True)
+					#on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn4
@@ -203,8 +204,8 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: root.ids.btn4.pos_hint
 					size_hint: root.ids.btn4.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					#on_press: root.loadingPopup(True)
+					#on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn5
@@ -212,8 +213,8 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: root.ids.btn5.pos_hint
 					size_hint: root.ids.btn5.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					#on_press: root.loadingPopup(True)
+					#on_release: root.testSlewRate()
 					group : 'g0'
 				ToggleButton:
 					id: togbtn6
@@ -221,8 +222,8 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: root.ids.btn6.pos_hint
 					size_hint: root.ids.btn6.size_hint
-#					on_press: root.loadingPopup(True)
-#					on_release: root.testSlewRate()
+					#on_press: root.loadingPopup(True)
+					#on_release: root.testSlewRate()
 					group : 'g0'
 
 				Label:
@@ -245,7 +246,7 @@ ScreenManagement:
 					id: slewRateLbl
 					font_size: 50
 					pos_hint: {"center_x":.95,"center_y":.40}
-#					text: '{}'.format(root.getSlideValue(slide.value))
+					#text: '{}'.format(root.getSlideValue(slide.value))
 					text: '0 V/us'
 
 				Button:
@@ -266,7 +267,7 @@ ScreenManagement:
 					font_size: 50
 					pos_hint: {"center_x":0.66,"center_y":.25}
 					size_hint: .3,.13
-#					on_press: root.loadingPopup(True)
+					#on_press: root.loadingPopup(True)
 					on_release: root.testSlewRate()
 				Button:
 					text: 'Exit'
@@ -863,7 +864,7 @@ ScreenManagement:
 			on_press:
 				root.updatePWMtxt0()
 			size_hint_y: None
-			height: '48dp'
+			height: 20
 			group: 'g0'
 
 		CheckBox:
@@ -925,7 +926,7 @@ ScreenManagement:
 			on_press:
 				root.updatePWMtxt0()
 			size_hint_y: None
-			height: '48dp'
+			height: 20
 			group: 'g0'
 
 		CheckBox:
