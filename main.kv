@@ -849,138 +849,127 @@ ScreenManagement:
 		size_hint: .1, .07
 		pos_hint: {"center_x":.05+0.859, "center_y":.4}
 
-	GridLayout: # Selector buttons for DC/PWM
-		cols:7
-		rows:2
-		size_hint: 0.9, None
-		pos_hint: {"center_x": 0.525, "center_y": 0.5}
-		height: 430
-		spacing: 0,0
-		padding: 75,0,20,0
+	CheckBox:
+		id: checkDC0
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt0()
+		pos_hint: {"center_x":.05+.1227, "center_y":.7}
+		size_hint: 0.1, 0.1
+		group: 'g0'
 
-		CheckBox:
-			id: checkDC0
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt0()
-			#size_hint_y: None
-			height: 100
-			width: 100
-			group: 'g0'
+	CheckBox:
+		id: checkDC1
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt1()
+		pos_hint: {"center_x":.05+.2454, "center_y":.7}
+		size_hint: 0.1, 0.1
+		group: 'g1'
 
-		CheckBox:
-			id: checkDC1
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt1()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g1'
+	CheckBox:
+		id: checkDC2
+		on_press:
+			root.updatePWMtxt2()
+		pos_hint: {"center_x":.05+0.36814, "center_y":.7}
+		size_hint: 0.1, 0.1
+		group: 'g2'
 
-		CheckBox:
-			id: checkDC2
-			on_press:
-				root.updatePWMtxt2()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g2'
+	CheckBox:
+		id: checkDC3
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt3()
+		pos_hint: {"center_x":.05+0.490857, "center_y":.7}
+		size_hint: 0.1, 0.1
+		group: 'g3'
 
-		CheckBox:
-			id: checkDC3
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt3()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g3'
+	CheckBox:
+		id: checkDC4
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt4()
+		pos_hint: {"center_x":.05+0.61357, "center_y":.7}
+		size_hint: 0.1, 0.1
+		group: 'g4'
 
-		CheckBox:
-			id: checkDC4
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt4()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g4'
+	CheckBox:
+		id: checkDC5
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt5()
+		pos_hint: {"center_x":.05+0.73628, "center_y":.7}
+		size_hint: 0.1, 0.1
+		group: 'g5'
 
-		CheckBox:
-			id: checkDC5
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt5()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g5'
+	CheckBox:
+		id: checkDC6
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt6()
+		pos_hint: {"center_x":.05+0.859, "center_y":.7}
+		size_hint: 0.1, 0.1
+		group: 'g6'
 
-		CheckBox:
-			id: checkDC6
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt6()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g6'
+	CheckBox:
+		id: checkPWM0
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt0()
+		pos_hint: {"center_x":.05+0.1227, "center_y":.6}
+		size_hint: 0.1, 0.1
+		group: 'g0'
 
-		CheckBox:
-			id: checkPWM0
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt0()
-			#size_hint_y: None
-			height: 100
-			width: 100
-			group: 'g0'
+	CheckBox:
+		id: checkPWM1
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt1()
+		pos_hint: {"center_x":.05+0.2454, "center_y":.6}
+		size_hint: 0.1, 0.1
+		group: 'g1'
 
-		CheckBox:
-			id: checkPWM1
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt1()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g1'
+	CheckBox:
+		id: checkPWM2
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt2()
+		pos_hint: {"center_x":.05+0.36814, "center_y":.6}
+		size_hint: 0.1, 0.1
+		group: 'g2'
 
-		CheckBox:
-			id: checkPWM2
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt2()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g2'
+	CheckBox:
+		id: checkPWM3
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt3()
+		pos_hint: {"center_x":.05+0.490857, "center_y":.6}
+		size_hint: 0.1, 0.1
+		group: 'g3'
 
-		CheckBox:
-			id: checkPWM3
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt3()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g3'
+	CheckBox:
+		id: checkPWM4
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt4()
+		pos_hint: {"center_x":.05+0.61357, "center_y":.6}
+		size_hint: 0.1, 0.1
+		group: 'g4'
 
-		CheckBox:
-			id: checkPWM4
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt4()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g4'
+	CheckBox:
+		id: checkPWM5
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt5()
+		pos_hint: {"center_x":.05+0.73628, "center_y":.6}
+		size_hint: 0.1, 0.1
+		group: 'g5'
 
-		CheckBox:
-			id: checkPWM5
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt5()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g5'
-
-		CheckBox:
-			id: checkPWM6
-			allow_no_selection: False
-			on_press:
-				root.updatePWMtxt6()
-			size_hint_y: None
-			height: '48dp'
-			group: 'g6'
+	CheckBox:
+		id: checkPWM6
+		allow_no_selection: False
+		on_press:
+			root.updatePWMtxt6()
+		pos_hint: {"center_x":.05+0.859, "center_y":.6}
+		size_hint: 0.1, 0.1
+		group: 'g6'
