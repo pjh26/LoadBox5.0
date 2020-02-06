@@ -36,11 +36,16 @@ sudo pip3 install shelve
 sudo pip3 install pigpio
 
 
+echo "Configuring Raspberry Pi"
+
+
+
+
 echo "Installing git and cloning repository"
 
 sudo apt-get install -y git
-
 git clone 'https://github.com/pjh26/LoadBox5.0'
+
 
 echo "Setting up cron jobs"
 
