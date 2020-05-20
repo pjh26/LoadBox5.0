@@ -5,12 +5,12 @@ sudo apt-get update
 
 echo "Installing Kivy Dependencies"
 
-sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-sudo apt-get install -y pkg-config libgl1-mesa-dev libgles2-mesa-dev
-sudo apt-get install -y python-setuptools libgstreamer1.0-dev git-core
-sudo apt-get install -y gstreamer1.0-plugins-{bad,base,good,ugly}
-sudo apt-get install -y gstreamer1.0-{omx,alsa} python-dev libmtdev-dev
-sudo apt-get install -y xclip xsel libjpeg-dev
+sudo apt install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+sudo apt install -y pkg-config libgl1-mesa-dev libgles2-mesa-dev
+sudo apt install -y python-setuptools libgstreamer1.0-dev git-core
+sudo apt install -y gstreamer1.0-plugins-{bad,base,good,ugly}
+sudo apt install -y gstreamer1.0-{omx,alsa} python-dev libmtdev-dev
+sudo apt install -y xclip xsel libjpeg-dev
 
 
 echo "Installing pip Dependencies"
