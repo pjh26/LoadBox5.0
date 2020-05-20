@@ -43,6 +43,9 @@ GPIO.setmode(GPIO.BCM)
 
 #Configure kivy
 Config.set('graphics','fullscreen','auto')
+Config.set('graphics', 'show_cursor','0')
+Config.set('input', 'mtdev_%(name)s', 'probesysfs,provider=mtdev')
+Config.set('input', 'hid_%(name)s', 'probesysfs,provider=hidinput')
 Config.write()
 #-------------------------------------------------------------#
 #                                                             #
