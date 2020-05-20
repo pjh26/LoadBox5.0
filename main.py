@@ -43,7 +43,7 @@ GPIO.setmode(GPIO.BCM)
 
 #Configure kivy
 Config.set('graphics','fullscreen','auto')
-
+Config.write()
 #-------------------------------------------------------------#
 #                                                             #
 #    Outputs are as follows          SPI Select               #
@@ -150,7 +150,7 @@ class HomeScreen(Screen):
     # either the choose program, delete program, or edit program function
     # param: func: the value (either 0,1,2) that globalData['del'] will be set to
     def setFunc(self, func):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         #get a temporary copy of the dictionary stored in the shelve database
         globalData = s['global']
