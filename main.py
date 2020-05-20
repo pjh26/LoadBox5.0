@@ -153,7 +153,7 @@ class HomeScreen(Screen):
     # either the choose program, delete program, or edit program function
     # param: func: the value (either 0,1,2) that globalData['del'] will be set to
     def setFunc(self, func):
-        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0//home/pi/LoadBox5.0/TestBoxData.db')
 
         #get a temporary copy of the dictionary stored in the shelve database
         globalData = s['global']
@@ -170,7 +170,7 @@ class ProgButton(Button):
     # This function is called when buttons in chooseprog screen are pressed
     # and it returns the name of the screen that will be linked to next
     def getScrn(self):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         #get a temporary copy of the dictionary stored in the shelve database
         globalData = s['global']
@@ -220,7 +220,7 @@ class ChooseProgScreen(Screen):
     # returns the title of the current program to be the title of the corresponding button
     # parameters: btn: the number of the current button whose title is to be returned
     def getBtnTxt(self, btn):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         #get a temporary copy of the dictionary stored in the shelve database
         progData = s['data']
@@ -234,7 +234,7 @@ class ChooseProgScreen(Screen):
     #returns the appropriate title based on the number at the 'del' position in the dict
     #returns a title for either the choose program screen, the Edit program screen or the Delete program screen
     def getLblTxt(self):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         #get a temporary copy of the dictionary stored in the shelve database
         globalData = s['global']
@@ -252,7 +252,7 @@ class ChooseProgScreen(Screen):
     #called in the delete program screen
     #deletes one program's information from the dictionary and shifts the subsequent programs back one position
     def setFunc(self):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         #get a temporary copy of the global data stored in the shelve database
         globalData = s['global']
@@ -283,7 +283,7 @@ class ChooseProgScreen(Screen):
     #called when the buttons in chooseprog screen are pressed
     #only opens popup if chooseprog screen is in delete mode
     def popOpen(self, btn):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
         #get a temporary copy of the dictionary stored in the shelve database
         globalData = s['global']
 
@@ -368,7 +368,7 @@ class SwitchScreen(Screen):
 
         self.myPopup.add_widget(self.progBar)
 
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         # Get a temporary copy of the global data dictionary stored in the shelve database
         globalData = s['global']
@@ -451,7 +451,7 @@ class SwitchScreen(Screen):
 
     #get button dc, frq to display below button
     def getbtnInfo(self,btn):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
         globalData = s['global']
         progData = s['data']
 
@@ -486,7 +486,7 @@ class SwitchScreen(Screen):
         else:
             currentButton = 0
 
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
         globalData = s['global']
         progData = s['data']
 
@@ -735,7 +735,7 @@ class SwitchScreen(Screen):
     #outputs software pwm signals on raspberry pi when the button is pressed
     def btnOut(self, num):
         #open database and save copy to temporary dictionary
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
         globalData = s['global']
         progData = s['data']
         pos = globalData['pos']
@@ -787,7 +787,7 @@ class NewProgScreen(Screen):
     #Also initializes the dict
     #Dict Structure is documented in OneNote under User Interface Design
     def commitNewProgTitle(self):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         globalData = s['global']
         progData = s['data']
@@ -866,7 +866,7 @@ class EditProgScreen(Screen):
 
     #put all the info entered into the textinputs into the dictionary and store in in the shelve database
     def commitButtonInfo(self):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
         globalData = s['global']
         progData = s['data']
         pos = globalData['pos']
@@ -934,7 +934,7 @@ class EditProgScreen(Screen):
 
     #resets the data/state of all the text inputs and buttons so old data is not displayed on them
     def updateWidgets(self):
-        s = shelve.open('TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
         globalData = s['global']
         pos = globalData['pos']
 
