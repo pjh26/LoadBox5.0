@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import time
 from kivy.app import App
 #kivy.require("1.8.0")
 from kivy.lang import Builder
@@ -25,10 +28,9 @@ import CurrentSensor
 import math
 import threading
 import random
-import time
 import queue
 
-
+#time.sleep(20)
 #-------------------------------------------------------------------------------#
 #                                                                               #
 #     Code structure is documented in OneNote under User Interface Design       #
@@ -153,7 +155,7 @@ class HomeScreen(Screen):
     # either the choose program, delete program, or edit program function
     # param: func: the value (either 0,1,2) that globalData['del'] will be set to
     def setFunc(self, func):
-        s = shelve.open('/home/pi/LoadBox5.0//home/pi/LoadBox5.0/TestBoxData.db')
+        s = shelve.open('/home/pi/LoadBox5.0/TestBoxData.db')
 
         #get a temporary copy of the dictionary stored in the shelve database
         globalData = s['global']
